@@ -1,6 +1,6 @@
-# 🟣 VoidByte Menu
+# 📼 VoidByte Menu
 
-# 📼 Script
+# 🟢 Script
 
 ``loadstring(game:HttpGet(""))()``
 
