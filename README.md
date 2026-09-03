@@ -93,15 +93,3 @@ Updates may include:
 - 🔄 Compatibility improvements
 
 Make sure to check the repository regularly for the latest changes.
-
----
-
-## 📥 Installation
-
-> **Note:** Always use the latest version of the project.
-
-```text
-1. Download the latest version.
-2. Follow the provided setup instructions.
-3. Launch the supported environment.
-4. Enjoy VoidByte Menu!
