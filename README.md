@@ -96,12 +96,6 @@ Updates may include:
 
 Make sure to check the repository regularly for the latest changes.
 
-## ⚖️ MIT License
-
-You are free to use, copy, modify, and distribute this script under the MIT License.
-
-Required: Any redistributed or modified version must retain the original copyright notice, the MIT License, and credit the original GitHub repository.
-
 
 ---
 
@@ -109,3 +103,11 @@ Required: Any redistributed or modified version must retain the original copyrig
 For any bugs, suggestions, or questions, visit:
 
 • https://discord.gg/gxCTuw5kb4
+
+---
+
+## ⚖️ MIT License
+
+You are free to use, copy, modify, and distribute this script under the MIT License.
+
+Required: Any redistributed or modified version must retain the original copyright notice, the MIT License, and credit the original GitHub repository.
