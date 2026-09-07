@@ -113,4 +113,4 @@ You are free to use, copy, modify, and distribute this script under the MIT Lice
 Required: Any redistributed or modified version must retain the original copyright notice, the MIT License, and credit the original GitHub repository.
 
 ➡️ [MIT License](https://github.com/hydrapirate/VoidByte/blob/main/LICENSE)
-➡️ [GitHub](https://github.com/hydrapirate)
+➡️ [GitHub Creator](https://github.com/hydrapirate)
