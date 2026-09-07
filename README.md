@@ -1,6 +1,6 @@
 # 📼 VoidByte Menu 1.0 ALPHA
 
-# 🟢 Script
+# 💻 Script
 
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/hydrapirate/VoidByte/refs/heads/main/script"))()
