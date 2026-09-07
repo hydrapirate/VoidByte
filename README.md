@@ -93,3 +93,10 @@ Updates may include:
 - 🔄 Compatibility improvements
 
 Make sure to check the repository regularly for the latest changes.
+
+---
+
+## 📼 VoidByte Official Discord Server
+For any bugs, suggestions, or questions, visit:
+
+• https://discord.gg/gxCTuw5kb4
