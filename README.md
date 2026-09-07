@@ -1,4 +1,4 @@
-# 📼 VoidByte Menu (Coming Soon)
+# 📼 VoidByte Menu
 
 # 🟢 Script
 
