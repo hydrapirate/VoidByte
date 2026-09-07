@@ -2120,7 +2120,7 @@ AdminButton.MouseButton1Click:Connect(function()
     else
 
         Status.Text =
-            "●  Error during execution BundleAnimations"
+            "●  Error during execution VoidByte Sit"
 
         Status.TextColor3 =
             Color3.fromRGB(255, 130, 135)
