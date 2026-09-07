@@ -3,7 +3,7 @@
 # 💻 Script
 
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/hydrapirate/VoidByte/refs/heads/main/script"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/hydrapirate/VoidByte/refs/heads/main/script.lua"))()
 ```
 
 ---
