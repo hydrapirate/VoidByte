@@ -2,7 +2,7 @@
 
 # 🟢 Script
 
-``loadstring(game:HttpGet(""))()``
+``loadstring(game:HttpGet("https://raw.githubusercontent.com/hydrapirate/VoidByte/refs/heads/main/script"))()``
 
 ---
 
