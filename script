@@ -1728,7 +1728,7 @@ AdminButton.MouseButton1Click:Connect(function()
 
             if not Execute then
                 error(
-                    "loadstring não está disponível."
+                    "loadstring is not available."
                 )
             end
 
@@ -1801,7 +1801,7 @@ AdminButton.MouseButton1Click:Connect(function()
 
             if not Execute then
                 error(
-                    "loadstring não está disponível."
+                    "loadstring is not available."
                 )
             end
 
@@ -1874,7 +1874,7 @@ AdminButton.MouseButton1Click:Connect(function()
 
             if not Execute then
                 error(
-                    "loadstring não está disponível."
+                    "loadstring is not available."
                 )
             end
 
@@ -1947,7 +1947,7 @@ AdminButton.MouseButton1Click:Connect(function()
 
             if not Execute then
                 error(
-                    "loadstring não está disponível."
+                    "loadstring is not available."
                 )
             end
 
@@ -1975,6 +1975,79 @@ AdminButton.MouseButton1Click:Connect(function()
 
         Status.Text =
             "●  Error during execution FE ADMIN"
+
+        Status.TextColor3 =
+            Color3.fromRGB(255, 130, 135)
+
+        warn(
+            "VoidByte Admin:",
+            ErrorMessage
+        )
+    end
+end)
+
+-- VoidByte Combat
+
+CreateSectionTitle(
+    "TOOLS",
+    ToolsPage
+)
+
+local AdminButton =
+    CreateButton(
+        "VoidByte Combat",
+        ToolsPage
+    )
+
+AdminButton.MouseButton1Click:Connect(function()
+
+    Status.Text =
+        "●  Running VoidByte Combat..."
+
+    Status.TextColor3 =
+        COLORS.Accent
+
+    local Success, ErrorMessage =
+        pcall(function()
+
+            local Source =
+                game:HttpGet(
+                    "https://raw.githubusercontent.com/hydrapirate/VoidByte/refs/heads/main/VoidByte%20Tools/voidbytecombat.lua"
+                )
+
+            local Execute =
+                loadstring(Source)
+
+            if not Execute then
+                error(
+                    "loadstring is not available."
+                )
+            end
+
+            Execute()
+        end)
+
+    if Success then
+
+        AdminButton.Text =
+            "VoidByte Combat   •   EXECUTED"
+
+        SetButtonState(
+            AdminButton,
+            true,
+            COLORS.AccentDark
+        )
+
+        Status.Text =
+            "●  VoidByte Combat"
+
+        Status.TextColor3 =
+            Color3.fromRGB(105, 210, 135)
+
+    else
+
+        Status.Text =
+            "●  Error during execution VoidByte Combat"
 
         Status.TextColor3 =
             Color3.fromRGB(255, 130, 135)
