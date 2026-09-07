@@ -2059,6 +2059,79 @@ AdminButton.MouseButton1Click:Connect(function()
     end
 end)
 
+-- VoidByte Sit
+
+CreateSectionTitle(
+    "FUN",
+    ToolsPage
+)
+
+local AdminButton =
+    CreateButton(
+        "VoidByte Sit",
+        ToolsPage
+    )
+
+AdminButton.MouseButton1Click:Connect(function()
+
+    Status.Text =
+        "●  Running VoidByte Sit..."
+
+    Status.TextColor3 =
+        COLORS.Accent
+
+    local Success, ErrorMessage =
+        pcall(function()
+
+            local Source =
+                game:HttpGet(
+                    "https://raw.githubusercontent.com/hydrapirate/VoidByte/refs/heads/main/VoidByte%20Tools/voidbytesit.lua"
+                )
+
+            local Execute =
+                loadstring(Source)
+
+            if not Execute then
+                error(
+                    "loadstring is not available."
+                )
+            end
+
+            Execute()
+        end)
+
+    if Success then
+
+        AdminButton.Text =
+            "VoidByte Sit   •   EXECUTED"
+
+        SetButtonState(
+            AdminButton,
+            true,
+            COLORS.AccentDark
+        )
+
+        Status.Text =
+            "●  VoidByte Sit executed"
+
+        Status.TextColor3 =
+            Color3.fromRGB(105, 210, 135)
+
+    else
+
+        Status.Text =
+            "●  Error during execution BundleAnimations"
+
+        Status.TextColor3 =
+            Color3.fromRGB(255, 130, 135)
+
+        warn(
+            "VoidByte Admin:",
+            ErrorMessage
+        )
+    end
+end)
+
 
 --========================================================
 -- CONSOLE LUA
