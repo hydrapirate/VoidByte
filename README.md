@@ -2,7 +2,9 @@
 
 # 🟢 Script
 
-``loadstring(game:HttpGet("https://raw.githubusercontent.com/hydrapirate/VoidByte/refs/heads/main/script"))()``
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/hydrapirate/VoidByte/refs/heads/main/script"))()
+```
 
 ---
 
