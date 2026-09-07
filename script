@@ -1,0 +1,4490 @@
+--========================================================
+-- VOIDBYTE MENU ALPHA
+--========================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+local GUI_NAME = "VoidByteMenu"
+local AURA_NAME = "VoidByteGreenAura"
+local NAME_TAG_NAME = "VoidByteName"
+
+--========================================================
+-- ESTADOS
+--========================================================
+
+local TargetLockEnabled = false
+local EnemyTargetLockEnabled = false
+
+local MiraLockEnabled = false
+local MiraHolding = false
+local MiraTarget = nil
+
+local AuraEnabled = false
+local AuraLockEnabled = false
+
+-- VER NOMES
+local NamesEnabled = false
+local NameTags = {}
+
+local RespawnRetorneEnabled = false
+
+local TPLoopEnabled = false
+local TPLoopThread = nil
+local TPLoopInterval = 1
+
+local SelectedPlayer = nil
+local SavedRespawnCFrame = nil
+
+--========================================================
+-- FLY
+--========================================================
+
+local FlyEnabled = false
+local Flying = false
+local FlySpeed = 60
+
+local SpinEnabled = false
+local SpinSpeed = 60
+local SpinConnection = nil
+local PlayerWalkSpeed = 16
+local TPWalkEnabled = false
+local TPWalkConnection = nil
+
+local FlyVelocity = nil
+local FlyAttachment = nil
+local FlyOrientation = nil
+local FlyOrientationAttachment = nil
+local FlyConnection = nil
+
+local FlyingVehicle = nil
+local FlyingVehicleRoot = nil
+local VehicleVelocity = nil
+local VehicleAttachment = nil
+local VehicleOrientation = nil
+local VehicleOrientationAttachment = nil
+
+local FlyKeys = {
+    W = false,
+    A = false,
+    S = false,
+    D = false,
+    Up = false,
+    Down = false
+}
+
+local Minimized = false
+local CurrentTab = "Control"
+
+local WINDOW_SIZE = UDim2.fromOffset(700, 560)
+local MINIMIZED_SIZE = UDim2.fromOffset(700, 64)
+
+--========================================================
+-- CORES
+--========================================================
+
+local COLORS = {
+    Background = Color3.fromRGB(13, 14, 18),
+    Panel = Color3.fromRGB(18, 20, 26),
+    PanelDark = Color3.fromRGB(15, 17, 22),
+
+    Button = Color3.fromRGB(29, 32, 40),
+    ButtonHover = Color3.fromRGB(38, 41, 50),
+
+    Border = Color3.fromRGB(54, 57, 68),
+
+    Text = Color3.fromRGB(240, 241, 246),
+    Muted = Color3.fromRGB(135, 139, 151),
+
+    Accent = Color3.fromRGB(78, 119, 185),
+    AccentDark = Color3.fromRGB(52, 77, 120),
+
+    Green = Color3.fromRGB(45, 120, 67),
+    Red = Color3.fromRGB(125, 58, 62),
+
+    ConsoleGreen = Color3.fromRGB(80, 255, 120)
+}
+
+--========================================================
+-- REMOVER GUI ANTIGA
+--========================================================
+
+local OldGui = PlayerGui:FindFirstChild(GUI_NAME)
+
+if OldGui then
+    OldGui:Destroy()
+end
+
+--========================================================
+-- SCREEN GUI
+--========================================================
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = GUI_NAME
+ScreenGui.ResetOnSpawn = false
+ScreenGui.IgnoreGuiInset = true
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = PlayerGui
+
+--========================================================
+-- JANELA
+--========================================================
+
+local Main = Instance.new("Frame")
+Main.Name = "Main"
+Main.Size = WINDOW_SIZE
+Main.Position = UDim2.new(0.5, -350, 0.5, -280)
+Main.BackgroundColor3 = COLORS.Background
+Main.BorderSizePixel = 0
+Main.Active = true
+Main.ClipsDescendants = true
+Main.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 16)
+MainCorner.Parent = Main
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = COLORS.Border
+MainStroke.Thickness = 1
+MainStroke.Transparency = 0.2
+MainStroke.Parent = Main
+
+--========================================================
+-- TOP BAR
+--========================================================
+
+local TopBar = Instance.new("Frame")
+TopBar.Name = "TopBar"
+TopBar.Size = UDim2.new(1, 0, 0, 64)
+TopBar.BackgroundColor3 = COLORS.Panel
+TopBar.BorderSizePixel = 0
+TopBar.Active = true
+TopBar.Parent = Main
+
+local Logo = Instance.new("TextLabel")
+Logo.Size = UDim2.fromOffset(40, 40)
+Logo.Position = UDim2.fromOffset(14, 12)
+Logo.BackgroundColor3 = COLORS.AccentDark
+Logo.BorderSizePixel = 0
+Logo.Text = "V"
+Logo.TextColor3 = Color3.new(1, 1, 1)
+Logo.TextSize = 20
+Logo.Font = Enum.Font.GothamBold
+Logo.Parent = TopBar
+
+local LogoCorner = Instance.new("UICorner")
+LogoCorner.CornerRadius = UDim.new(0, 11)
+LogoCorner.Parent = Logo
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -230, 0, 24)
+Title.Position = UDim2.fromOffset(66, 9)
+Title.BackgroundTransparency = 1
+Title.Text = "VOIDBYTE"
+Title.TextColor3 = COLORS.Text
+Title.TextSize = 17
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TopBar
+
+local Subtitle = Instance.new("TextLabel")
+Subtitle.Size = UDim2.new(1, -230, 0, 18)
+Subtitle.Position = UDim2.fromOffset(66, 33)
+Subtitle.BackgroundTransparency = 1
+Subtitle.Text = "Control and Tools"
+Subtitle.TextColor3 = COLORS.Muted
+Subtitle.TextSize = 11
+Subtitle.Font = Enum.Font.Gotham
+Subtitle.TextXAlignment = Enum.TextXAlignment.Left
+Subtitle.Parent = TopBar
+
+--========================================================
+-- MINIMIZAR / FECHAR
+--========================================================
+
+local Minimize = Instance.new("TextButton")
+Minimize.Size = UDim2.fromOffset(34, 34)
+Minimize.Position = UDim2.new(1, -82, 0, 15)
+Minimize.BackgroundColor3 = COLORS.Button
+Minimize.BorderSizePixel = 0
+Minimize.Text = "−"
+Minimize.TextColor3 = COLORS.Text
+Minimize.TextSize = 20
+Minimize.Font = Enum.Font.GothamBold
+Minimize.AutoButtonColor = false
+Minimize.Parent = TopBar
+
+local MinCorner = Instance.new("UICorner")
+MinCorner.CornerRadius = UDim.new(0, 9)
+MinCorner.Parent = Minimize
+
+local Close = Instance.new("TextButton")
+Close.Size = UDim2.fromOffset(34, 34)
+Close.Position = UDim2.new(1, -42, 0, 15)
+Close.BackgroundColor3 = Color3.fromRGB(58, 38, 43)
+Close.BorderSizePixel = 0
+Close.Text = "×"
+Close.TextColor3 = Color3.fromRGB(255, 220, 225)
+Close.TextSize = 20
+Close.Font = Enum.Font.GothamBold
+Close.AutoButtonColor = false
+Close.Parent = TopBar
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 9)
+CloseCorner.Parent = Close
+
+--========================================================
+-- SIDEBAR
+--========================================================
+
+local Sidebar = Instance.new("Frame")
+Sidebar.Size = UDim2.new(0, 170, 1, -64)
+Sidebar.Position = UDim2.fromOffset(0, 64)
+Sidebar.BackgroundColor3 = COLORS.Panel
+Sidebar.BorderSizePixel = 0
+Sidebar.Parent = Main
+
+local SidebarPadding = Instance.new("UIPadding")
+SidebarPadding.PaddingTop = UDim.new(0, 18)
+SidebarPadding.PaddingLeft = UDim.new(0, 12)
+SidebarPadding.PaddingRight = UDim.new(0, 12)
+SidebarPadding.Parent = Sidebar
+
+local SidebarLayout = Instance.new("UIListLayout")
+SidebarLayout.Padding = UDim.new(0, 8)
+SidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
+SidebarLayout.Parent = Sidebar
+
+local function CreateTabButton(Text, Icon)
+
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(1, 0, 0, 46)
+    Button.BackgroundColor3 = COLORS.Button
+    Button.BorderSizePixel = 0
+    Button.Text = ""
+    Button.AutoButtonColor = false
+    Button.Parent = Sidebar
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 10)
+    Corner.Parent = Button
+
+    local IconLabel = Instance.new("TextLabel")
+    IconLabel.Size = UDim2.fromOffset(38, 46)
+    IconLabel.BackgroundTransparency = 1
+    IconLabel.Text = Icon
+    IconLabel.TextColor3 = COLORS.Muted
+    IconLabel.TextSize = 17
+    IconLabel.Font = Enum.Font.GothamBold
+    IconLabel.Parent = Button
+
+    local TextLabel = Instance.new("TextLabel")
+    TextLabel.Size = UDim2.new(1, -45, 1, 0)
+    TextLabel.Position = UDim2.fromOffset(40, 0)
+    TextLabel.BackgroundTransparency = 1
+    TextLabel.Text = Text
+    TextLabel.TextColor3 = COLORS.Muted
+    TextLabel.TextSize = 12
+    TextLabel.Font = Enum.Font.GothamBold
+    TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+    TextLabel.Parent = Button
+
+    return Button, TextLabel, IconLabel
+end
+
+local ControleTab, ControleText, ControleIcon =
+    CreateTabButton("Control", "◈")
+
+local FerramentasTab, FerramentasText, FerramentasIcon =
+    CreateTabButton("Tools", "⚙")
+
+local ConsoleTab, ConsoleText, ConsoleIcon =
+    CreateTabButton("Console", "⌘")
+
+--========================================================
+-- CONTEÚDO
+--========================================================
+
+local Content = Instance.new("Frame")
+Content.Size = UDim2.new(1, -170, 1, -64)
+Content.Position = UDim2.fromOffset(170, 64)
+Content.BackgroundTransparency = 1
+Content.Parent = Main
+
+local Status = Instance.new("TextLabel")
+Status.Size = UDim2.new(1, -28, 0, 28)
+Status.Position = UDim2.fromOffset(14, 10)
+Status.BackgroundTransparency = 1
+Status.Text = "●  VoidByte Menu 1.0 Alpha"
+Status.TextColor3 = Color3.fromRGB(105, 210, 135)
+Status.TextSize = 11
+Status.Font = Enum.Font.GothamMedium
+Status.TextXAlignment = Enum.TextXAlignment.Left
+Status.Parent = Content
+
+--========================================================
+-- PÁGINAS
+--========================================================
+
+local ControlePage = Instance.new("ScrollingFrame")
+ControlePage.Size = UDim2.new(1, -20, 1, -50)
+ControlePage.Position = UDim2.fromOffset(10, 45)
+ControlePage.BackgroundTransparency = 1
+ControlePage.BorderSizePixel = 0
+ControlePage.ScrollBarThickness = 4
+ControlePage.CanvasSize = UDim2.new()
+ControlePage.Parent = Content
+
+local ControleLayout = Instance.new("UIListLayout")
+ControleLayout.Padding = UDim.new(0, 8)
+ControleLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ControleLayout.Parent = ControlePage
+
+local ControlePadding = Instance.new("UIPadding")
+ControlePadding.PaddingTop = UDim.new(0, 5)
+ControlePadding.PaddingBottom = UDim.new(0, 15)
+ControlePadding.PaddingLeft = UDim.new(0, 5)
+ControlePadding.PaddingRight = UDim.new(0, 5)
+ControlePadding.Parent = ControlePage
+
+local ToolsPage = Instance.new("ScrollingFrame")
+ToolsPage.Size = UDim2.new(1, -20, 1, -50)
+ToolsPage.Position = UDim2.fromOffset(10, 45)
+ToolsPage.BackgroundTransparency = 1
+ToolsPage.BorderSizePixel = 0
+ToolsPage.ScrollBarThickness = 4
+ToolsPage.CanvasSize = UDim2.new()
+ToolsPage.Visible = false
+ToolsPage.Parent = Content
+
+local ToolsLayout = Instance.new("UIListLayout")
+ToolsLayout.Padding = UDim.new(0, 8)
+ToolsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+ToolsLayout.Parent = ToolsPage
+
+local ToolsPadding = Instance.new("UIPadding")
+ToolsPadding.PaddingTop = UDim.new(0, 5)
+ToolsPadding.PaddingBottom = UDim.new(0, 15)
+ToolsPadding.PaddingLeft = UDim.new(0, 5)
+ToolsPadding.PaddingRight = UDim.new(0, 5)
+ToolsPadding.Parent = ToolsPage
+
+--========================================================
+-- CONSOLE PAGE
+--========================================================
+
+local ConsolePage = Instance.new("Frame")
+ConsolePage.Name = "ConsolePage"
+ConsolePage.Size = UDim2.new(1, -20, 1, -50)
+ConsolePage.Position = UDim2.fromOffset(10, 45)
+ConsolePage.BackgroundTransparency = 1
+ConsolePage.Visible = false
+ConsolePage.Parent = Content
+
+local ConsoleTitle = Instance.new("TextLabel")
+ConsoleTitle.Size = UDim2.new(1, 0, 0, 27)
+ConsoleTitle.BackgroundTransparency = 1
+ConsoleTitle.Text = "LUA CONSOLE"
+ConsoleTitle.TextColor3 = COLORS.Muted
+ConsoleTitle.TextSize = 10
+ConsoleTitle.Font = Enum.Font.GothamBold
+ConsoleTitle.TextXAlignment = Enum.TextXAlignment.Left
+ConsoleTitle.Parent = ConsolePage
+
+local LuaInput = Instance.new("TextBox")
+LuaInput.Name = "LuaInput"
+LuaInput.Size = UDim2.new(1, 0, 0, 250)
+LuaInput.Position = UDim2.fromOffset(0, 32)
+LuaInput.BackgroundColor3 = COLORS.PanelDark
+LuaInput.BorderSizePixel = 0
+LuaInput.Text = "-- Enter your Lua code here\nprint(\"VoidByte Console\")"
+LuaInput.PlaceholderText = "-- Enter Lua code..."
+LuaInput.PlaceholderColor3 = COLORS.Muted
+LuaInput.TextColor3 = COLORS.ConsoleGreen
+LuaInput.TextSize = 13
+LuaInput.Font = Enum.Font.Code
+LuaInput.TextXAlignment = Enum.TextXAlignment.Left
+LuaInput.TextYAlignment = Enum.TextYAlignment.Top
+LuaInput.TextWrapped = true
+LuaInput.MultiLine = true
+LuaInput.ClearTextOnFocus = false
+LuaInput.Parent = ConsolePage
+
+local LuaCorner = Instance.new("UICorner")
+LuaCorner.CornerRadius = UDim.new(0, 10)
+LuaCorner.Parent = LuaInput
+
+local LuaStroke = Instance.new("UIStroke")
+LuaStroke.Color = COLORS.Border
+LuaStroke.Thickness = 1
+LuaStroke.Transparency = 0.3
+LuaStroke.Parent = LuaInput
+
+local LuaPadding = Instance.new("UIPadding")
+LuaPadding.PaddingTop = UDim.new(0, 12)
+LuaPadding.PaddingBottom = UDim.new(0, 12)
+LuaPadding.PaddingLeft = UDim.new(0, 12)
+LuaPadding.PaddingRight = UDim.new(0, 12)
+LuaPadding.Parent = LuaInput
+
+--========================================================
+-- BOTÕES DO CONSOLE
+--========================================================
+
+local ExecuteLua = Instance.new("TextButton")
+ExecuteLua.Name = "ExecuteLua"
+ExecuteLua.Size = UDim2.new(0.5, -4, 0, 44)
+ExecuteLua.Position = UDim2.fromOffset(0, 292)
+ExecuteLua.BackgroundColor3 = COLORS.AccentDark
+ExecuteLua.BorderSizePixel = 0
+ExecuteLua.Text = "▶  EXECUTE"
+ExecuteLua.TextColor3 = COLORS.Text
+ExecuteLua.TextSize = 12
+ExecuteLua.Font = Enum.Font.GothamBold
+ExecuteLua.AutoButtonColor = false
+ExecuteLua.Parent = ConsolePage
+
+local ExecuteCorner = Instance.new("UICorner")
+ExecuteCorner.CornerRadius = UDim.new(0, 9)
+ExecuteCorner.Parent = ExecuteLua
+
+local ExecuteStroke = Instance.new("UIStroke")
+ExecuteStroke.Color = COLORS.Border
+ExecuteStroke.Transparency = 0.5
+ExecuteStroke.Parent = ExecuteLua
+
+local ClearConsole = Instance.new("TextButton")
+ClearConsole.Name = "ClearConsole"
+ClearConsole.Size = UDim2.new(0.5, -4, 0, 44)
+ClearConsole.Position = UDim2.new(0.5, 4, 0, 292)
+ClearConsole.BackgroundColor3 = COLORS.Button
+ClearConsole.BorderSizePixel = 0
+ClearConsole.Text = "⌫  CLEAR"
+ClearConsole.TextColor3 = COLORS.Text
+ClearConsole.TextSize = 12
+ClearConsole.Font = Enum.Font.GothamBold
+ClearConsole.AutoButtonColor = false
+ClearConsole.Parent = ConsolePage
+
+local ClearCorner = Instance.new("UICorner")
+ClearCorner.CornerRadius = UDim.new(0, 9)
+ClearCorner.Parent = ClearConsole
+
+local ClearStroke = Instance.new("UIStroke")
+ClearStroke.Color = COLORS.Border
+ClearStroke.Transparency = 0.5
+ClearStroke.Parent = ClearConsole
+
+--========================================================
+-- CONSOLE OUTPUT
+--========================================================
+
+local ConsoleOutput = Instance.new("TextBox")
+ConsoleOutput.Name = "ConsoleOutput"
+ConsoleOutput.Size = UDim2.new(1, 0, 0, 115)
+ConsoleOutput.Position = UDim2.fromOffset(0, 348)
+ConsoleOutput.BackgroundColor3 = COLORS.PanelDark
+ConsoleOutput.BorderSizePixel = 0
+ConsoleOutput.Text = "VoidByte Console started."
+ConsoleOutput.TextColor3 = COLORS.ConsoleGreen
+ConsoleOutput.TextSize = 11
+ConsoleOutput.Font = Enum.Font.Code
+ConsoleOutput.TextXAlignment = Enum.TextXAlignment.Left
+ConsoleOutput.TextYAlignment = Enum.TextYAlignment.Top
+ConsoleOutput.TextWrapped = true
+ConsoleOutput.MultiLine = true
+ConsoleOutput.ClearTextOnFocus = false
+ConsoleOutput.TextEditable = false
+ConsoleOutput.Parent = ConsolePage
+
+local OutputCorner = Instance.new("UICorner")
+OutputCorner.CornerRadius = UDim.new(0, 9)
+OutputCorner.Parent = ConsoleOutput
+
+local OutputStroke = Instance.new("UIStroke")
+OutputStroke.Color = COLORS.Border
+OutputStroke.Transparency = 0.3
+OutputStroke.Parent = ConsoleOutput
+
+local OutputPadding = Instance.new("UIPadding")
+OutputPadding.PaddingTop = UDim.new(0, 10)
+OutputPadding.PaddingBottom = UDim.new(0, 10)
+OutputPadding.PaddingLeft = UDim.new(0, 10)
+OutputPadding.PaddingRight = UDim.new(0, 10)
+OutputPadding.Parent = ConsoleOutput
+
+--========================================================
+-- CANVAS
+--========================================================
+
+local function UpdateCanvas(Frame, Layout)
+    Frame.CanvasSize =
+        UDim2.new(
+            0,
+            0,
+            0,
+            Layout.AbsoluteContentSize.Y + 30
+        )
+end
+
+ControleLayout:GetPropertyChangedSignal(
+    "AbsoluteContentSize"
+):Connect(function()
+    UpdateCanvas(ControlePage, ControleLayout)
+end)
+
+ToolsLayout:GetPropertyChangedSignal(
+    "AbsoluteContentSize"
+):Connect(function()
+    UpdateCanvas(ToolsPage, ToolsLayout)
+end)
+
+--========================================================
+-- UI HELPERS
+--========================================================
+
+local function CreateSectionTitle(Text, Parent)
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(1, 0, 0, 27)
+    Label.BackgroundTransparency = 1
+    Label.Text = Text
+    Label.TextColor3 = COLORS.Muted
+    Label.TextSize = 10
+    Label.Font = Enum.Font.GothamBold
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Parent
+
+    return Label
+end
+
+local function CreateButton(Text, Parent)
+
+    local Button = Instance.new("TextButton")
+    Button.Size = UDim2.new(1, 0, 0, 44)
+    Button.BackgroundColor3 = COLORS.Button
+    Button.BorderSizePixel = 0
+    Button.Text = Text
+    Button.TextColor3 = COLORS.Text
+    Button.TextSize = 12
+    Button.Font = Enum.Font.GothamBold
+    Button.AutoButtonColor = false
+    Button.Parent = Parent
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 9)
+    Corner.Parent = Button
+
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Color = COLORS.Border
+    Stroke.Transparency = 0.5
+    Stroke.Parent = Button
+
+    Button.MouseEnter:Connect(function()
+        if Button:GetAttribute("Active") ~= true then
+            Button.BackgroundColor3 = COLORS.ButtonHover
+        end
+    end)
+
+    Button.MouseLeave:Connect(function()
+        if Button:GetAttribute("Active") ~= true then
+            Button.BackgroundColor3 = COLORS.Button
+        end
+    end)
+
+    return Button
+end
+
+local function SetButtonState(Button, Enabled, ActiveColor)
+
+    Button:SetAttribute("Active", Enabled)
+
+    Button.BackgroundColor3 =
+        Enabled
+        and (ActiveColor or COLORS.AccentDark)
+        or COLORS.Button
+end
+
+--========================================================
+-- SLIDER DE VELOCIDADE
+--========================================================
+
+local function CreateSpeedSlider(Parent)
+
+    local Holder = Instance.new("Frame")
+    Holder.Name = "Velocidade"
+    Holder.Size = UDim2.new(1, 0, 0, 66)
+    Holder.BackgroundColor3 = COLORS.Button
+    Holder.BorderSizePixel = 0
+    Holder.Parent = Parent
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 9)
+    Corner.Parent = Holder
+
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Color = COLORS.Border
+    Stroke.Transparency = 0.5
+    Stroke.Parent = Holder
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(0.55, 0, 0, 24)
+    Title.Position = UDim2.fromOffset(12, 6)
+    Title.BackgroundTransparency = 1
+    Title.Text = "TP WALK Speed"
+    Title.TextColor3 = COLORS.Text
+    Title.TextSize = 12
+    Title.Font = Enum.Font.GothamBold
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = Holder
+
+    local Value = Instance.new("TextLabel")
+    Value.Size = UDim2.new(0.35, -12, 0, 24)
+    Value.Position = UDim2.new(0.65, 0, 0, 6)
+    Value.BackgroundTransparency = 1
+    Value.TextColor3 = COLORS.Muted
+    Value.TextSize = 11
+    Value.Font = Enum.Font.GothamMedium
+    Value.TextXAlignment = Enum.TextXAlignment.Right
+    Value.Parent = Holder
+
+    local Bar = Instance.new("Frame")
+    Bar.Size = UDim2.new(1, -24, 0, 8)
+    Bar.Position = UDim2.fromOffset(12, 43)
+    Bar.BackgroundColor3 = COLORS.PanelDark
+    Bar.BorderSizePixel = 0
+    Bar.Parent = Holder
+
+    local BarCorner = Instance.new("UICorner")
+    BarCorner.CornerRadius = UDim.new(1, 0)
+    BarCorner.Parent = Bar
+
+    local Fill = Instance.new("Frame")
+    Fill.BackgroundColor3 = COLORS.Accent
+    Fill.BorderSizePixel = 0
+    Fill.Parent = Bar
+
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(1, 0)
+    FillCorner.Parent = Fill
+
+    local Knob = Instance.new("TextButton")
+    Knob.Size = UDim2.fromOffset(18, 18)
+    Knob.AnchorPoint = Vector2.new(0.5, 0.5)
+    Knob.BackgroundColor3 = COLORS.Text
+    Knob.BorderSizePixel = 0
+    Knob.Text = ""
+    Knob.AutoButtonColor = false
+    Knob.Parent = Bar
+
+    local KnobCorner = Instance.new("UICorner")
+    KnobCorner.CornerRadius = UDim.new(1, 0)
+    KnobCorner.Parent = Knob
+
+    local MinSpeed = 1
+    local MaxSpeed = 300
+    local DraggingSlider = false
+
+    local function SetSpeedFromX(X)
+        local Width = Bar.AbsoluteSize.X
+        if Width <= 0 then return end
+
+        local Alpha = math.clamp(
+            (X - Bar.AbsolutePosition.X) / Width,
+            0,
+            1
+        )
+
+        PlayerWalkSpeed = math.floor(
+            MinSpeed + (MaxSpeed - MinSpeed) * Alpha + 0.5
+        )
+
+        Fill.Size = UDim2.fromScale(Alpha, 1)
+        Knob.Position = UDim2.fromScale(Alpha, 0.5)
+        Value.Text = tostring(PlayerWalkSpeed)
+    end
+
+    Bar.InputBegan:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1
+            or Input.UserInputType == Enum.UserInputType.Touch then
+            DraggingSlider = true
+            SetSpeedFromX(Input.Position.X)
+        end
+    end)
+
+    Knob.InputBegan:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1
+            or Input.UserInputType == Enum.UserInputType.Touch then
+            DraggingSlider = true
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(Input)
+        if not DraggingSlider then return end
+        if Input.UserInputType == Enum.UserInputType.MouseMovement
+            or Input.UserInputType == Enum.UserInputType.Touch then
+            SetSpeedFromX(Input.Position.X)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1
+            or Input.UserInputType == Enum.UserInputType.Touch then
+            DraggingSlider = false
+        end
+    end)
+
+    task.defer(function()
+        local Alpha = (PlayerWalkSpeed - MinSpeed) / (MaxSpeed - MinSpeed)
+        Fill.Size = UDim2.fromScale(Alpha, 1)
+        Knob.Position = UDim2.fromScale(Alpha, 0.5)
+        Value.Text = tostring(PlayerWalkSpeed)
+    end)
+
+    return Holder
+end
+
+--========================================================
+-- CONTROLE
+--========================================================
+
+CreateSectionTitle("AIM", ControlePage)
+
+local TargetToggle =
+    CreateButton(
+        "AimBot   •   DISABLED",
+        ControlePage
+    )
+
+local EnemyTargetToggle =
+    CreateButton(
+        "AimBotEnemies   •   DISABLED",
+        ControlePage
+    )
+
+local MiraLockToggle =
+    CreateButton(
+        "CircleAim  •   DISABLED",
+        ControlePage
+    )
+
+--========================================================
+-- FOV
+--========================================================
+
+local FOVCircle = Instance.new("Frame")
+FOVCircle.Name = "MiraLockFOV"
+FOVCircle.Size = UDim2.fromOffset(260, 260)
+FOVCircle.AnchorPoint = Vector2.new(0.5, 0.5)
+FOVCircle.Position = UDim2.fromScale(0.5, 0.5)
+FOVCircle.BackgroundTransparency = 1
+FOVCircle.Visible = false
+FOVCircle.ZIndex = 100
+FOVCircle.Parent = ScreenGui
+
+local FOVCorner = Instance.new("UICorner")
+FOVCorner.CornerRadius = UDim.new(1, 0)
+FOVCorner.Parent = FOVCircle
+
+local FOVStroke = Instance.new("UIStroke")
+FOVStroke.Color = COLORS.Accent
+FOVStroke.Thickness = 2
+FOVStroke.Transparency = 0.15
+FOVStroke.Parent = FOVCircle
+
+--========================================================
+-- VISUALIZAÇÃO
+--========================================================
+
+CreateSectionTitle("VIEW", ControlePage)
+
+local AuraToggle =
+    CreateButton(
+        "WallHack  •   DISABLED",
+        ControlePage
+    )
+
+local AuraLockToggle =
+    CreateButton(
+        "WallHackEnemies  •   DISABLED",
+        ControlePage
+    )
+
+--========================================================
+-- VER NOMES
+--========================================================
+
+local NamesEnabled = false
+local NameTags = {}
+
+local function RemoveNameTag(Player)
+
+    local Tag = NameTags[Player]
+
+    if Tag then
+        Tag:Destroy()
+        NameTags[Player] = nil
+    end
+end
+
+local function CreateNameTag(Player)
+
+    if Player == LocalPlayer then
+        return
+    end
+
+    local Character = Player.Character
+
+    if not Character then
+        return
+    end
+
+    local Head = Character:FindFirstChild("Head")
+
+    if not Head then
+        return
+    end
+
+    RemoveNameTag(Player)
+
+    local Billboard = Instance.new("BillboardGui")
+    Billboard.Name = NAME_TAG_NAME
+    Billboard.Adornee = Head
+    Billboard.Size = UDim2.fromOffset(220, 35)
+    Billboard.StudsOffset = Vector3.new(0, 2.8, 0)
+
+    -- Sempre renderiza por cima e sem limite de distância.
+    Billboard.AlwaysOnTop = true
+    Billboard.MaxDistance = math.huge
+
+    Billboard.Parent = Head
+
+    local NameLabel = Instance.new("TextLabel")
+    NameLabel.Name = "PlayerName"
+    NameLabel.Size = UDim2.fromScale(1, 1)
+    NameLabel.BackgroundTransparency = 1
+    NameLabel.Text =
+        Player.DisplayName ..
+        "  @" ..
+        Player.Name
+
+    NameLabel.TextColor3 = COLORS.Text
+    NameLabel.TextSize = 13
+    NameLabel.Font = Enum.Font.GothamBold
+    NameLabel.TextStrokeTransparency = 0.25
+    NameLabel.TextStrokeColor3 = Color3.new(0, 0, 0)
+    NameLabel.TextXAlignment = Enum.TextXAlignment.Center
+    NameLabel.TextYAlignment = Enum.TextYAlignment.Center
+    NameLabel.Parent = Billboard
+
+    NameTags[Player] = Billboard
+end
+
+local function UpdateAllNames()
+
+    for _, Player in ipairs(
+        Players:GetPlayers()
+    ) do
+
+        if Player ~= LocalPlayer then
+
+            if NamesEnabled then
+                CreateNameTag(Player)
+            else
+                RemoveNameTag(Player)
+            end
+        end
+    end
+end
+
+local function SetupNamePlayer(Player)
+
+    if Player == LocalPlayer then
+        return
+    end
+
+    Player.CharacterAdded:Connect(function()
+
+        if NamesEnabled then
+
+            task.wait(0.2)
+
+            CreateNameTag(Player)
+        end
+    end)
+
+    if NamesEnabled then
+        task.defer(function()
+            CreateNameTag(Player)
+        end)
+    end
+end
+
+for _, Player in ipairs(
+    Players:GetPlayers()
+) do
+
+    SetupNamePlayer(Player)
+end
+
+Players.PlayerAdded:Connect(function(Player)
+
+    SetupNamePlayer(Player)
+
+    if NamesEnabled then
+
+        task.wait(0.2)
+
+        CreateNameTag(Player)
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+
+    RemoveNameTag(Player)
+end)
+
+local NamesToggle =
+    CreateButton(
+        "VIEW NAMES   •   DISABLED",
+        ControlePage
+    )
+
+NamesToggle.MouseButton1Click:Connect(function()
+
+    NamesEnabled =
+        not NamesEnabled
+
+    if NamesEnabled then
+
+        NamesToggle.Text =
+            "VIEW NAMES   •   ACTIVATED"
+
+        SetButtonState(
+            NamesToggle,
+            true,
+            COLORS.AccentDark
+        )
+
+        Status.Text =
+            "●  Names of activated players"
+
+        Status.TextColor3 =
+            COLORS.Accent
+
+    else
+
+        NamesToggle.Text =
+            "VIEW NAMES   •   DISABLED"
+
+        SetButtonState(
+            NamesToggle,
+            false
+        )
+
+        Status.Text =
+            "●  Names of inactive players"
+
+        Status.TextColor3 =
+            COLORS.Muted
+    end
+
+    UpdateAllNames()
+end)
+
+--========================================================
+-- RESPAWN
+--========================================================
+
+CreateSectionTitle("RESPAWN", ControlePage)
+
+local RespawnToggle =
+    CreateButton(
+        "RESPAWN RETURN  •   DISABLED",
+        ControlePage
+    )
+
+--========================================================
+-- TELEPORTE
+--========================================================
+
+CreateSectionTitle("TELEPORT", ControlePage)
+
+local Search = Instance.new("TextBox")
+Search.Size = UDim2.new(1, 0, 0, 42)
+Search.BackgroundColor3 = COLORS.PanelDark
+Search.BorderSizePixel = 0
+Search.PlaceholderText = "Search for a player..."
+Search.PlaceholderColor3 = COLORS.Muted
+Search.Text = ""
+Search.TextColor3 = COLORS.Text
+Search.TextSize = 12
+Search.Font = Enum.Font.Gotham
+Search.ClearTextOnFocus = false
+Search.Parent = ControlePage
+
+local SearchCorner = Instance.new("UICorner")
+SearchCorner.CornerRadius = UDim.new(0, 9)
+SearchCorner.Parent = Search
+
+local SearchPadding = Instance.new("UIPadding")
+SearchPadding.PaddingLeft = UDim.new(0, 12)
+SearchPadding.Parent = Search
+
+local PlayerList = Instance.new("ScrollingFrame")
+PlayerList.Size = UDim2.new(1, 0, 0, 135)
+PlayerList.BackgroundColor3 = COLORS.PanelDark
+PlayerList.BorderSizePixel = 0
+PlayerList.ScrollBarThickness = 4
+PlayerList.CanvasSize = UDim2.new()
+PlayerList.Parent = ControlePage
+
+local PlayerCorner = Instance.new("UICorner")
+PlayerCorner.CornerRadius = UDim.new(0, 9)
+PlayerCorner.Parent = PlayerList
+
+local PlayerLayout = Instance.new("UIListLayout")
+PlayerLayout.Padding = UDim.new(0, 5)
+PlayerLayout.SortOrder = Enum.SortOrder.Name
+PlayerLayout.Parent = PlayerList
+
+local PlayerPadding = Instance.new("UIPadding")
+PlayerPadding.PaddingTop = UDim.new(0, 6)
+PlayerPadding.PaddingBottom = UDim.new(0, 6)
+PlayerPadding.PaddingLeft = UDim.new(0, 6)
+PlayerPadding.PaddingRight = UDim.new(0, 6)
+PlayerPadding.Parent = PlayerList
+
+PlayerLayout:GetPropertyChangedSignal(
+    "AbsoluteContentSize"
+):Connect(function()
+
+    PlayerList.CanvasSize =
+        UDim2.new(
+            0,
+            0,
+            0,
+            PlayerLayout.AbsoluteContentSize.Y + 15
+        )
+end)
+
+local SelectedLabel = Instance.new("TextLabel")
+SelectedLabel.Size = UDim2.new(1, 0, 0, 28)
+SelectedLabel.BackgroundTransparency = 1
+SelectedLabel.Text = "No player selected"
+SelectedLabel.TextColor3 = COLORS.Muted
+SelectedLabel.TextSize = 11
+SelectedLabel.Font = Enum.Font.Gotham
+SelectedLabel.TextXAlignment = Enum.TextXAlignment.Left
+SelectedLabel.Parent = ControlePage
+
+local TeleportButton =
+    CreateButton(
+        "TELEPORT TO PLAYER",
+        ControlePage
+    )
+
+--========================================================
+-- TP LOOP
+--========================================================
+
+local TPLoopButton =
+    CreateButton(
+        "TP LOOP   •   DISABLED",
+        ControlePage
+    )
+
+-- Intervalo do TP Loop: 0.1 até 99999999 segundos.
+local function CreateTPLoopSlider(Parent)
+
+    local Holder = Instance.new("Frame")
+    Holder.Name = "TPLoopInterval"
+    Holder.Size = UDim2.new(1, 0, 0, 66)
+    Holder.BackgroundColor3 = COLORS.Button
+    Holder.BorderSizePixel = 0
+    Holder.Parent = Parent
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 9)
+    Corner.Parent = Holder
+
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Color = COLORS.Border
+    Stroke.Transparency = 0.5
+    Stroke.Parent = Holder
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(0.55, 0, 0, 24)
+    Title.Position = UDim2.fromOffset(12, 6)
+    Title.BackgroundTransparency = 1
+    Title.Text = "TP Loop Interval"
+    Title.TextColor3 = COLORS.Text
+    Title.TextSize = 12
+    Title.Font = Enum.Font.GothamBold
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = Holder
+
+    local Value = Instance.new("TextLabel")
+    Value.Size = UDim2.new(0.35, -12, 0, 24)
+    Value.Position = UDim2.new(0.65, 0, 0, 6)
+    Value.BackgroundTransparency = 1
+    Value.TextColor3 = COLORS.Muted
+    Value.TextSize = 11
+    Value.Font = Enum.Font.GothamMedium
+    Value.TextXAlignment = Enum.TextXAlignment.Right
+    Value.Parent = Holder
+
+    local Bar = Instance.new("Frame")
+    Bar.Size = UDim2.new(1, -24, 0, 8)
+    Bar.Position = UDim2.fromOffset(12, 43)
+    Bar.BackgroundColor3 = COLORS.PanelDark
+    Bar.BorderSizePixel = 0
+    Bar.Active = true
+    Bar.Parent = Holder
+
+    local BarCorner = Instance.new("UICorner")
+    BarCorner.CornerRadius = UDim.new(1, 0)
+    BarCorner.Parent = Bar
+
+    local Fill = Instance.new("Frame")
+    Fill.BackgroundColor3 = COLORS.Accent
+    Fill.BorderSizePixel = 0
+    Fill.Parent = Bar
+
+    local FillCorner = Instance.new("UICorner")
+    FillCorner.CornerRadius = UDim.new(1, 0)
+    FillCorner.Parent = Fill
+
+    local Knob = Instance.new("TextButton")
+    Knob.Size = UDim2.fromOffset(18, 18)
+    Knob.AnchorPoint = Vector2.new(0.5, 0.5)
+    Knob.BackgroundColor3 = COLORS.Text
+    Knob.BorderSizePixel = 0
+    Knob.Text = ""
+    Knob.AutoButtonColor = false
+    Knob.Parent = Bar
+
+    local KnobCorner = Instance.new("UICorner")
+    KnobCorner.CornerRadius = UDim.new(1, 0)
+    KnobCorner.Parent = Knob
+
+    local MinInterval = 0.1
+    local MaxInterval = 999
+    local DraggingSlider = false
+
+    local function FormatInterval(ValueNumber)
+        if ValueNumber < 1 then
+            return string.format("%.1f s", ValueNumber)
+        end
+
+        if ValueNumber >= 999 then
+            return "999 s"
+        end
+
+        if math.abs(ValueNumber - math.floor(ValueNumber)) < 0.001 then
+            return string.format("%d s", math.floor(ValueNumber))
+        end
+
+        return string.format("%.1f s", ValueNumber)
+    end
+
+    local function SetIntervalFromX(X)
+        local Width = Bar.AbsoluteSize.X
+        if Width <= 0 then
+            return
+        end
+
+        local Alpha = math.clamp(
+            (X - Bar.AbsolutePosition.X) / Width,
+            0,
+            1
+        )
+
+        -- 0.1–99999999 com resolução de 0.1 segundo.
+        local NewInterval =
+            MinInterval +
+            (MaxInterval - MinInterval) * Alpha
+
+        TPLoopInterval =
+            math.clamp(
+                math.round(NewInterval * 10) / 10,
+                MinInterval,
+                MaxInterval
+            )
+
+        local DisplayAlpha =
+            (TPLoopInterval - MinInterval) /
+            (MaxInterval - MinInterval)
+
+        Fill.Size = UDim2.fromScale(DisplayAlpha, 1)
+        Knob.Position = UDim2.fromScale(DisplayAlpha, 0.5)
+        Value.Text = FormatInterval(TPLoopInterval)
+
+        Status.Text =
+            "●  TP Loop Interval: " ..
+            FormatInterval(TPLoopInterval)
+        Status.TextColor3 = COLORS.Accent
+    end
+
+    Bar.InputBegan:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1
+            or Input.UserInputType == Enum.UserInputType.Touch then
+
+            DraggingSlider = true
+            SetIntervalFromX(Input.Position.X)
+        end
+    end)
+
+    Knob.InputBegan:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1
+            or Input.UserInputType == Enum.UserInputType.Touch then
+
+            DraggingSlider = true
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(Input)
+        if not DraggingSlider then
+            return
+        end
+
+        if Input.UserInputType == Enum.UserInputType.MouseMovement
+            or Input.UserInputType == Enum.UserInputType.Touch then
+
+            SetIntervalFromX(Input.Position.X)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(Input)
+        if Input.UserInputType == Enum.UserInputType.MouseButton1
+            or Input.UserInputType == Enum.UserInputType.Touch then
+
+            DraggingSlider = false
+        end
+    end)
+
+    task.defer(function()
+        local Alpha =
+            (TPLoopInterval - MinInterval) /
+            (MaxInterval - MinInterval)
+
+        Fill.Size = UDim2.fromScale(Alpha, 1)
+        Knob.Position = UDim2.fromScale(Alpha, 0.5)
+        Value.Text = FormatInterval(TPLoopInterval)
+    end)
+
+    return Holder
+end
+
+CreateTPLoopSlider(ControlePage)
+
+local function StopTPLoop()
+
+    TPLoopEnabled = false
+
+    if TPLoopThread then
+        task.cancel(TPLoopThread)
+        TPLoopThread = nil
+    end
+
+    TPLoopButton.Text =
+        "TP LOOP   •   DESATIVADO"
+
+    SetButtonState(
+        TPLoopButton,
+        false
+    )
+end
+
+local function TeleportToSelectedPlayer()
+
+    if not TPLoopEnabled then
+        return
+    end
+
+    if not SelectedPlayer
+        or not SelectedPlayer.Parent
+    then
+
+        StopTPLoop()
+
+        SelectedPlayer = nil
+
+        SelectedLabel.Text =
+            "Nenhum jogador selecionado"
+
+        Status.Text =
+            "●  TP Loop parado"
+
+        Status.TextColor3 =
+            Color3.fromRGB(255, 130, 135)
+
+        return
+    end
+
+    local Character =
+        LocalPlayer.Character
+
+    local TargetCharacter =
+        SelectedPlayer.Character
+
+    if not Character or not TargetCharacter then
+        return
+    end
+
+    local Root =
+        Character:FindFirstChild(
+            "HumanoidRootPart"
+        )
+
+    local TargetRoot =
+        TargetCharacter:FindFirstChild(
+            "HumanoidRootPart"
+        )
+
+    if Root and TargetRoot then
+        -- +Z local do alvo fica exatamente atrás das costas dele.
+        -- O offset é pequeno para deixar o player praticamente colado.
+        Root.CFrame =
+            TargetRoot.CFrame *
+            CFrame.new(0, 0, 1.5)
+    end
+end
+
+TPLoopButton.MouseButton1Click:Connect(function()
+
+    if TPLoopEnabled then
+
+        StopTPLoop()
+
+        Status.Text =
+            "●  TP Loop disabled"
+
+        Status.TextColor3 =
+            COLORS.Muted
+
+        return
+    end
+
+    if not SelectedPlayer then
+
+        Status.Text =
+            "●  Select a player first."
+
+        Status.TextColor3 =
+            Color3.fromRGB(255, 130, 135)
+
+        return
+    end
+
+    TPLoopEnabled = true
+
+    TPLoopButton.Text =
+        "TP LOOP   •   ACTIVATED"
+
+    SetButtonState(
+        TPLoopButton,
+        true,
+        COLORS.AccentDark
+    )
+
+    Status.Text =
+        "●  TP Loop ativo: " ..
+        SelectedPlayer.Name
+
+    Status.TextColor3 =
+        COLORS.Accent
+
+    TeleportToSelectedPlayer()
+
+    TPLoopThread = task.spawn(function()
+
+        while TPLoopEnabled do
+
+            task.wait(TPLoopInterval)
+
+            if TPLoopEnabled then
+                TeleportToSelectedPlayer()
+            end
+        end
+    end)
+end)
+
+--========================================================
+-- MOVIMENTO
+--========================================================
+
+CreateSectionTitle(
+    "MOVIMENTO",
+    ControlePage
+)
+
+local FlyToggle =
+    CreateButton(
+        "FLY   •   DISABLED",
+        ControlePage
+    )
+
+CreateSpeedSlider(ControlePage)
+
+--========================================================
+-- SPIN
+--========================================================
+
+local SpinToggle =
+    CreateButton(
+        "SPIN   •   DISABLED",
+        ControlePage
+    )
+
+local function CreateSpinSlider(Parent)
+    local Holder = Instance.new("Frame")
+    Holder.Name = "SpinVelocidade"
+    Holder.Size = UDim2.new(1, 0, 0, 66)
+    Holder.BackgroundColor3 = COLORS.Button
+    Holder.BorderSizePixel = 0
+    Holder.Parent = Parent
+
+    local Corner = Instance.new("UICorner")
+    Corner.CornerRadius = UDim.new(0, 9)
+    Corner.Parent = Holder
+
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Color = COLORS.Border
+    Stroke.Transparency = 0.5
+    Stroke.Parent = Holder
+
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(0.55, 0, 0, 24)
+    Title.Position = UDim2.fromOffset(12, 6)
+    Title.BackgroundTransparency = 1
+    Title.Text = "Spin Speed"
+    Title.TextColor3 = COLORS.Text
+    Title.TextSize = 12
+    Title.Font = Enum.Font.GothamBold
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.Parent = Holder
+
+    local Input = Instance.new("TextBox")
+    Input.Name = "SpinSpeedInput"
+    Input.Size = UDim2.fromOffset(145, 32)
+    Input.Position = UDim2.new(1, -157, 0, 5)
+    Input.BackgroundColor3 = COLORS.PanelDark
+    Input.BorderSizePixel = 0
+    Input.Text = tostring(SpinSpeed)
+    Input.PlaceholderText = "Enter the number"
+    Input.PlaceholderColor3 = COLORS.Muted
+    Input.TextColor3 = COLORS.Text
+    Input.TextSize = 12
+    Input.Font = Enum.Font.GothamBold
+    Input.ClearTextOnFocus = false
+    Input.Parent = Holder
+
+    local InputCorner = Instance.new("UICorner")
+    InputCorner.CornerRadius = UDim.new(0, 8)
+    InputCorner.Parent = Input
+
+    local InputStroke = Instance.new("UIStroke")
+    InputStroke.Color = COLORS.Border
+    InputStroke.Transparency = 0.3
+    InputStroke.Parent = Input
+
+    local Hint = Instance.new("TextLabel")
+    Hint.Size = UDim2.new(1, -24, 0, 20)
+    Hint.Position = UDim2.fromOffset(12, 42)
+    Hint.BackgroundTransparency = 1
+    Hint.Text = "Enter any numeric value and press Enter."
+    Hint.TextColor3 = COLORS.Muted
+    Hint.TextSize = 10
+    Hint.Font = Enum.Font.Gotham
+    Hint.TextXAlignment = Enum.TextXAlignment.Left
+    Hint.Parent = Holder
+
+    local function ApplySpinSpeed()
+        local Number = tonumber(Input.Text)
+
+        if Number and Number >= 0 then
+            SpinSpeed = Number
+            Input.Text = tostring(SpinSpeed)
+            Status.Text = "●  Spin Speed: " .. tostring(SpinSpeed)
+            Status.TextColor3 = COLORS.Accent
+        else
+            Input.Text = tostring(SpinSpeed)
+            Status.Text = "●  Invalid value"
+            Status.TextColor3 = Color3.fromRGB(255, 100, 100)
+        end
+    end
+
+    Input.FocusLost:Connect(function(EnterPressed)
+        if EnterPressed then
+            ApplySpinSpeed()
+        else
+            ApplySpinSpeed()
+        end
+    end)
+
+    return Holder
+end
+
+
+CreateSpinSlider(ControlePage)
+
+local function StopSpin()
+    if SpinConnection then
+        SpinConnection:Disconnect()
+        SpinConnection = nil
+    end
+end
+
+local function StartSpin()
+    if not SpinEnabled or SpinConnection then return end
+
+    SpinConnection = RunService.RenderStepped:Connect(function(DeltaTime)
+        if not SpinEnabled then return end
+
+        local Character = LocalPlayer.Character
+        local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+        local Root = Character and Character:FindFirstChild("HumanoidRootPart")
+
+        if not Character or not Humanoid or not Root or Humanoid.Health <= 0 then
+            return
+        end
+
+        Root.CFrame = Root.CFrame * CFrame.Angles(0, math.rad(SpinSpeed) * DeltaTime, 0)
+    end)
+end
+
+SpinToggle.MouseButton1Click:Connect(function()
+    SpinEnabled = not SpinEnabled
+
+    if SpinEnabled then
+        StartSpin()
+        SpinToggle.Text = "SPIN   •   ACTIVATED"
+        SetButtonState(SpinToggle, true, COLORS.AccentDark)
+        Status.Text = "●  Active spin • speed: " .. tostring(SpinSpeed)
+        Status.TextColor3 = COLORS.Accent
+    else
+        StopSpin()
+        SpinToggle.Text = "SPIN   •   DISABLED"
+        SetButtonState(SpinToggle, false)
+        Status.Text = "●  Spin disabled"
+        Status.TextColor3 = COLORS.Muted
+    end
+end)
+
+local TPWalkToggle =
+    CreateButton(
+        "TP WALK   •   DISABLED",
+        ControlePage
+    )
+
+local TPWalkReset =
+    CreateButton(
+        "SPEED RESET   •   16",
+        ControlePage
+    )
+
+local function StopTPWalk()
+    TPWalkEnabled = false
+
+    if TPWalkConnection then
+        TPWalkConnection:Disconnect()
+        TPWalkConnection = nil
+    end
+end
+
+local function StartTPWalk()
+    if TPWalkConnection then
+        TPWalkConnection:Disconnect()
+    end
+
+    TPWalkEnabled = true
+
+    TPWalkConnection = RunService.Heartbeat:Connect(function(DeltaTime)
+        if not TPWalkEnabled then
+            return
+        end
+
+        local Character = LocalPlayer.Character
+        local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+        local Root = Character and Character:FindFirstChild("HumanoidRootPart")
+
+        if not Humanoid or not Root or Humanoid.Health <= 0 then
+            return
+        end
+
+        local Direction = Humanoid.MoveDirection
+
+        if Direction.Magnitude > 0.01 then
+            -- Cada atualização dá um pequeno TP para a frente.
+            -- O valor da barra define a distância percorrida por segundo.
+            local Step = PlayerWalkSpeed * DeltaTime
+            Root.CFrame = Root.CFrame + Direction.Unit * Step
+        end
+    end)
+end
+
+TPWalkToggle.MouseButton1Click:Connect(function()
+    TPWalkEnabled = not TPWalkEnabled
+
+    if TPWalkEnabled then
+        StartTPWalk()
+
+        TPWalkToggle.Text = "TP WALK   •   ENABLED"
+        SetButtonState(TPWalkToggle, true, COLORS.AccentDark)
+
+        Status.Text = "●  Active TP Walk • speed: " .. tostring(PlayerWalkSpeed)
+        Status.TextColor3 = COLORS.Accent
+    else
+        StopTPWalk()
+
+        TPWalkToggle.Text = "TP WALK   •   DISABLED"
+        SetButtonState(TPWalkToggle, false)
+
+        Status.Text = "●  TP Walk disabled"
+        Status.TextColor3 = COLORS.Muted
+    end
+end)
+
+TPWalkReset.MouseButton1Click:Connect(function()
+    PlayerWalkSpeed = 16
+
+    -- Atualiza a barra visualmente procurando o Frame criado pela função.
+    local SpeedHolder = ControlePage:FindFirstChild("Velocidade")
+    if SpeedHolder then
+        local Bar = SpeedHolder:FindFirstChildWhichIsA("Frame")
+        if Bar then
+            local Fill = Bar:FindFirstChildWhichIsA("Frame")
+            if Fill then
+                Fill.Size = UDim2.fromScale(15 / 299, 1)
+            end
+
+            local Knob = Bar:FindFirstChildWhichIsA("TextButton")
+            if Knob then
+                Knob.Position = UDim2.fromScale(15 / 299, 0.5)
+            end
+        end
+
+        local Labels = {}
+        for _, Child in ipairs(SpeedHolder:GetChildren()) do
+            if Child:IsA("TextLabel") then
+                table.insert(Labels, Child)
+            end
+        end
+
+        if #Labels >= 2 then
+            Labels[2].Text = "16"
+        end
+    end
+
+    TPWalkReset.Text = "SPEED RESET   •   16"
+    Status.Text = "● Speed ​​reset to 16"
+    Status.TextColor3 = COLORS.Muted
+end)
+
+
+--========================================================
+-- FERRAMENTAS
+--========================================================
+
+-- Infinite Yield
+
+CreateSectionTitle(
+    "TOOLS",
+    ToolsPage
+)
+
+local AdminButton =
+    CreateButton(
+        "Infinite Yield",
+        ToolsPage
+    )
+
+AdminButton.MouseButton1Click:Connect(function()
+
+    Status.Text =
+        "●  Running Infinite Yield..."
+
+    Status.TextColor3 =
+        COLORS.Accent
+
+    local Success, ErrorMessage =
+        pcall(function()
+
+            local Source =
+                game:HttpGet(
+                    "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"
+                )
+
+            local Execute =
+                loadstring(Source)
+
+            if not Execute then
+                error(
+                    "loadstring não está disponível."
+                )
+            end
+
+            Execute()
+        end)
+
+    if Success then
+
+        AdminButton.Text =
+            "Infinite Yield   •   EXECUTED"
+
+        SetButtonState(
+            AdminButton,
+            true,
+            COLORS.AccentDark
+        )
+
+        Status.Text =
+            "●  Infinite Yield executed"
+
+        Status.TextColor3 =
+            Color3.fromRGB(105, 210, 135)
+
+    else
+
+        Status.Text =
+            "●  Error during execution Infinite Yield"
+
+        Status.TextColor3 =
+            Color3.fromRGB(255, 130, 135)
+
+        warn(
+            "VoidByte Admin:",
+            ErrorMessage
+        )
+    end
+end)
+
+-- BundleAnimations
+
+CreateSectionTitle(
+    "FUN",
+    ToolsPage
+)
+
+local AdminButton =
+    CreateButton(
+        "BundleAnimations",
+        ToolsPage
+    )
+
+AdminButton.MouseButton1Click:Connect(function()
+
+    Status.Text =
+        "●  Running BundleAnimations..."
+
+    Status.TextColor3 =
+        COLORS.Accent
+
+    local Success, ErrorMessage =
+        pcall(function()
+
+            local Source =
+                game:HttpGet(
+                    "https://raw.githubusercontent.com/Bac0nHck/Scripts/refs/heads/main/BundleAnimations.lua"
+                )
+
+            local Execute =
+                loadstring(Source)
+
+            if not Execute then
+                error(
+                    "loadstring não está disponível."
+                )
+            end
+
+            Execute()
+        end)
+
+    if Success then
+
+        AdminButton.Text =
+            "BundleAnimations   •   EXECUTED"
+
+        SetButtonState(
+            AdminButton,
+            true,
+            COLORS.AccentDark
+        )
+
+        Status.Text =
+            "●  BundleAnimations executed"
+
+        Status.TextColor3 =
+            Color3.fromRGB(105, 210, 135)
+
+    else
+
+        Status.Text =
+            "●  Error during execution BundleAnimations"
+
+        Status.TextColor3 =
+            Color3.fromRGB(255, 130, 135)
+
+        warn(
+            "VoidByte Admin:",
+            ErrorMessage
+        )
+    end
+end)
+
+-- Emoter GUI
+
+CreateSectionTitle(
+    "FUN",
+    ToolsPage
+)
+
+local AdminButton =
+    CreateButton(
+        "Emoter GUI",
+        ToolsPage
+    )
+
+AdminButton.MouseButton1Click:Connect(function()
+
+    Status.Text =
+        "●  Running Emoter GUI..."
+
+    Status.TextColor3 =
+        COLORS.Accent
+
+    local Success, ErrorMessage =
+        pcall(function()
+
+            local Source =
+                game:HttpGet(
+                    "https://raw.githubusercontent.com/Fixel656/Roblox-Emotes-GUI-Script-R6-R15/refs/heads/main/MainScript.lua"
+                )
+
+            local Execute =
+                loadstring(Source)
+
+            if not Execute then
+                error(
+                    "loadstring não está disponível."
+                )
+            end
+
+            Execute()
+        end)
+
+    if Success then
+
+        AdminButton.Text =
+            "Emoter GUI   •   EXECUTED"
+
+        SetButtonState(
+            AdminButton,
+            true,
+            COLORS.AccentDark
+        )
+
+        Status.Text =
+            "●  Emoter GUI executed"
+
+        Status.TextColor3 =
+            Color3.fromRGB(105, 210, 135)
+
+    else
+
+        Status.Text =
+            "●  Error during execution Emoter GUI"
+
+        Status.TextColor3 =
+            Color3.fromRGB(255, 130, 135)
+
+        warn(
+            "VoidByte Admin:",
+            ErrorMessage
+        )
+    end
+end)
+
+-- FE ADMIN
+
+CreateSectionTitle(
+    "FUN",
+    ToolsPage
+)
+
+local AdminButton =
+    CreateButton(
+        "FE Admin (Just a baseplate)",
+        ToolsPage
+    )
+
+AdminButton.MouseButton1Click:Connect(function()
+
+    Status.Text =
+        "●  Running FE ADMIN..."
+
+    Status.TextColor3 =
+        COLORS.Accent
+
+    local Success, ErrorMessage =
+        pcall(function()
+
+            local Source =
+                game:HttpGet(
+                    "https://raw.githubusercontent.com/Jskfhggjxu/My-Script/refs/heads/main/ServerHacker-X.lua"
+                )
+
+            local Execute =
+                loadstring(Source)
+
+            if not Execute then
+                error(
+                    "loadstring não está disponível."
+                )
+            end
+
+            Execute()
+        end)
+
+    if Success then
+
+        AdminButton.Text =
+            "FE ADMIN   •   EXECUTED"
+
+        SetButtonState(
+            AdminButton,
+            true,
+            COLORS.AccentDark
+        )
+
+        Status.Text =
+            "●  FE ADMIN executed"
+
+        Status.TextColor3 =
+            Color3.fromRGB(105, 210, 135)
+
+    else
+
+        Status.Text =
+            "●  Error during execution FE ADMIN"
+
+        Status.TextColor3 =
+            Color3.fromRGB(255, 130, 135)
+
+        warn(
+            "VoidByte Admin:",
+            ErrorMessage
+        )
+    end
+end)
+
+
+--========================================================
+-- CONSOLE LUA
+--========================================================
+
+local function ConsolePrint(Text)
+
+    Text = tostring(Text)
+
+    if ConsoleOutput.Text == "" then
+
+        ConsoleOutput.Text = Text
+
+    else
+
+        ConsoleOutput.Text =
+            ConsoleOutput.Text ..
+            "\n" ..
+            Text
+    end
+end
+
+local function ExecuteLuaCode(Source)
+
+    if not Source
+        or Source:gsub("%s+", "") == ""
+    then
+
+        ConsolePrint(
+            "[VoidByte] No code provided."
+        )
+
+        Status.Text =
+            "●  Console: empty code"
+
+        Status.TextColor3 =
+            Color3.fromRGB(255, 130, 135)
+
+        return
+    end
+
+    ConsolePrint(
+        "> " .. Source
+    )
+
+    local LoadFunction =
+        loadstring
+
+    if type(LoadFunction) ~= "function" then
+
+        ConsolePrint(
+            "[ERRO] loadstring is not available in this environment."
+        )
+
+        ConsolePrint(
+            "[INFO] A standard Roblox LocalScript cannot execute arbitrary Lua code."
+        )
+
+        ConsolePrint(
+            "[INFO] For secure game logic, use Scripts/ModuleScripts."
+        )
+
+        Status.Text =
+            "●  Console unavailable in this environment"
+
+        Status.TextColor3 =
+            Color3.fromRGB(255, 130, 135)
+
+        return
+    end
+
+    local Success, ChunkOrError =
+        pcall(function()
+
+            return LoadFunction(Source)
+
+        end)
+
+    if not Success then
+
+        ConsolePrint(
+            "[COMPILATION ERROR] " ..
+            tostring(ChunkOrError)
+        )
+
+        Status.Text =
+            "●  Error compiling Lua"
+
+        Status.TextColor3 =
+            Color3.fromRGB(255, 130, 135)
+
+        return
+    end
+
+    if type(ChunkOrError) ~= "function" then
+
+        ConsolePrint(
+            "[ERRO] Invalid Lua code."
+        )
+
+        Status.Text =
+            "●  Código Invalid"
+
+        Status.TextColor3 =
+            Color3.fromRGB(255, 130, 135)
+
+        return
+    end
+
+    local ExecuteSuccess, Result =
+        pcall(function()
+
+            return ChunkOrError()
+
+        end)
+
+    if ExecuteSuccess then
+
+        ConsolePrint(
+            "[OK] Code executed."
+        )
+
+        if Result ~= nil then
+
+            ConsolePrint(
+                "[RETURN] " ..
+                tostring(Result)
+            )
+        end
+
+        Status.Text =
+            "●  Lua executed successfully"
+
+        Status.TextColor3 =
+            Color3.fromRGB(105, 210, 135)
+
+    else
+
+        ConsolePrint(
+            "[EXECUTION ERROR] " ..
+            tostring(Result)
+        )
+
+        Status.Text =
+            "●  Lua execution error"
+
+        Status.TextColor3 =
+            Color3.fromRGB(255, 130, 135)
+
+        warn(
+            "VoidByte Console:",
+            Result
+        )
+    end
+end
+
+ExecuteLua.MouseEnter:Connect(function()
+
+    ExecuteLua.BackgroundColor3 =
+        COLORS.ButtonHover
+end)
+
+ExecuteLua.MouseLeave:Connect(function()
+
+    ExecuteLua.BackgroundColor3 =
+        COLORS.AccentDark
+end)
+
+ClearConsole.MouseEnter:Connect(function()
+
+    ClearConsole.BackgroundColor3 =
+        COLORS.ButtonHover
+end)
+
+ClearConsole.MouseLeave:Connect(function()
+
+    ClearConsole.BackgroundColor3 =
+        COLORS.Button
+end)
+
+ExecuteLua.MouseButton1Click:Connect(function()
+
+    ExecuteLua.Text =
+        "▶  RUNNING..."
+
+    task.spawn(function()
+
+        ExecuteLuaCode(
+            LuaInput.Text
+        )
+
+        task.wait(0.15)
+
+        ExecuteLua.Text =
+            "▶  EXECUTE"
+    end)
+end)
+
+ClearConsole.MouseButton1Click:Connect(function()
+
+    LuaInput.Text = ""
+
+    ConsoleOutput.Text =
+        "VoidByte Clean Console."
+
+    Status.Text =
+        "●  Clean console"
+
+    Status.TextColor3 =
+        COLORS.Muted
+end)
+
+UserInputService.InputBegan:Connect(function(
+    Input,
+    Processed
+)
+
+    if Processed then
+        return
+    end
+
+    if Input.KeyCode ==
+        Enum.KeyCode.Return
+        and
+        UserInputService:IsKeyDown(
+            Enum.KeyCode.LeftControl
+        )
+    then
+
+        if ConsolePage.Visible then
+
+            ExecuteLuaCode(
+                LuaInput.Text
+            )
+        end
+    end
+end)
+
+--========================================================
+-- AURA
+--========================================================
+
+local function RemoveAura(Character)
+
+    if not Character then
+        return
+    end
+
+    local Aura =
+        Character:FindFirstChild(
+            AURA_NAME
+        )
+
+    if Aura then
+        Aura:Destroy()
+    end
+end
+
+local function AddAura(Player)
+
+    if Player == LocalPlayer then
+        return
+    end
+
+    local Character =
+        Player.Character
+
+    if not Character then
+        return
+    end
+
+    local Humanoid =
+        Character:FindFirstChildOfClass(
+            "Humanoid"
+        )
+
+    if not Humanoid
+        or Humanoid.Health <= 0
+    then
+        return
+    end
+
+    if Character:FindFirstChild(
+        AURA_NAME
+    ) then
+        return
+    end
+
+    local Highlight =
+        Instance.new("Highlight")
+
+    Highlight.Name =
+        AURA_NAME
+
+    Highlight.FillColor =
+        Color3.fromRGB(
+            0,
+            255,
+            70
+        )
+
+    Highlight.OutlineColor =
+        Color3.fromRGB(
+            0,
+            255,
+            70
+        )
+
+    Highlight.FillTransparency = 0.55
+    Highlight.OutlineTransparency = 0
+    Highlight.DepthMode =
+        Enum.HighlightDepthMode.AlwaysOnTop
+
+    Highlight.Parent =
+        Character
+end
+
+local function UpdateAllAuras()
+
+    for _, Player in ipairs(
+        Players:GetPlayers()
+    ) do
+
+        if Player ~= LocalPlayer then
+
+            if AuraEnabled then
+                AddAura(Player)
+            else
+                RemoveAura(Player.Character)
+            end
+        end
+    end
+end
+
+--========================================================
+-- PLAYER LIST
+--========================================================
+
+local function CreatePlayerButton(Player)
+
+    local Button =
+        Instance.new("TextButton")
+
+    Button.Name =
+        Player.Name
+
+    Button.Size =
+        UDim2.new(
+            1,
+            -4,
+            0,
+            36
+        )
+
+    Button.BackgroundColor3 =
+        COLORS.Button
+
+    Button.BorderSizePixel = 0
+
+    Button.Text =
+        Player.DisplayName ..
+        "   @" ..
+        Player.Name
+
+    Button.TextColor3 =
+        COLORS.Text
+
+    Button.TextSize = 11
+    Button.Font = Enum.Font.Gotham
+    Button.TextXAlignment =
+        Enum.TextXAlignment.Left
+
+    Button.AutoButtonColor = false
+    Button.Parent = PlayerList
+
+    local Corner =
+        Instance.new("UICorner")
+
+    Corner.CornerRadius =
+        UDim.new(0, 7)
+
+    Corner.Parent = Button
+
+    local Padding =
+        Instance.new("UIPadding")
+
+    Padding.PaddingLeft =
+        UDim.new(0, 10)
+
+    Padding.Parent = Button
+
+    Button.MouseEnter:Connect(function()
+
+        if SelectedPlayer ~= Player then
+            Button.BackgroundColor3 =
+                COLORS.ButtonHover
+        end
+    end)
+
+    Button.MouseLeave:Connect(function()
+
+        if SelectedPlayer ~= Player then
+            Button.BackgroundColor3 =
+                COLORS.Button
+        end
+    end)
+
+    Button.MouseButton1Click:Connect(function()
+
+        SelectedPlayer = Player
+
+        SelectedLabel.Text =
+            "Selected: " ..
+            Player.DisplayName ..
+            "  @" ..
+            Player.Name
+
+        for _, Item in ipairs(
+            PlayerList:GetChildren()
+        ) do
+
+            if Item:IsA("TextButton") then
+                Item.BackgroundColor3 =
+                    COLORS.Button
+            end
+        end
+
+        Button.BackgroundColor3 =
+            COLORS.AccentDark
+
+        Status.Text =
+            "●  Selected player: " ..
+            Player.Name
+
+        Status.TextColor3 =
+            COLORS.Accent
+    end)
+end
+
+local function UpdatePlayerList()
+
+    for _, Child in ipairs(
+        PlayerList:GetChildren()
+    ) do
+
+        if Child:IsA("TextButton") then
+            Child:Destroy()
+        end
+    end
+
+    local Query =
+        string.lower(
+            Search.Text
+        )
+
+    for _, Player in ipairs(
+        Players:GetPlayers()
+    ) do
+
+        if Player ~= LocalPlayer then
+
+            local Name =
+                string.lower(
+                    Player.Name
+                )
+
+            local DisplayName =
+                string.lower(
+                    Player.DisplayName
+                )
+
+            if Query == ""
+                or string.find(
+                    Name,
+                    Query,
+                    1,
+                    true
+                )
+                or string.find(
+                    DisplayName,
+                    Query,
+                    1,
+                    true
+                )
+            then
+
+                CreatePlayerButton(
+                    Player
+                )
+            end
+        end
+    end
+end
+
+Search:GetPropertyChangedSignal(
+    "Text"
+):Connect(
+    UpdatePlayerList
+)
+
+Players.PlayerAdded:Connect(function()
+
+    task.wait()
+
+    UpdatePlayerList()
+end)
+
+Players.PlayerRemoving:Connect(function(Player)
+
+    if SelectedPlayer == Player then
+
+        StopTPLoop()
+
+        SelectedPlayer = nil
+
+        SelectedLabel.Text =
+            "Nenhum jogador selecionado"
+    end
+
+    RemoveNameTag(Player)
+
+    task.wait()
+
+    UpdatePlayerList()
+end)
+
+--========================================================
+-- TELEPORTE NORMAL
+--========================================================
+
+TeleportButton.MouseButton1Click:Connect(function()
+
+    if not SelectedPlayer then
+
+        SelectedLabel.Text =
+            "Select a player first."
+
+        return
+    end
+
+    local Character =
+        LocalPlayer.Character
+
+    local TargetCharacter =
+        SelectedPlayer.Character
+
+    if not Character
+        or not TargetCharacter
+    then
+        return
+    end
+
+    local Root =
+        Character:FindFirstChild(
+            "HumanoidRootPart"
+        )
+
+    local TargetRoot =
+        TargetCharacter:FindFirstChild(
+            "HumanoidRootPart"
+        )
+
+    if Root and TargetRoot then
+
+        Root.CFrame =
+            TargetRoot.CFrame +
+            Vector3.new(3, 0, 0)
+
+        Status.Text =
+            "●  Teleportation complete"
+
+        Status.TextColor3 =
+            Color3.fromRGB(
+                105,
+                210,
+                135
+            )
+    end
+end)
+
+--========================================================
+-- INIMIGO
+--========================================================
+
+local function IsEnemy(Player)
+
+    if Player == LocalPlayer then
+        return false
+    end
+
+    if not LocalPlayer.Team
+        or not Player.Team
+    then
+        return false
+    end
+
+    return Player.Team ~= LocalPlayer.Team
+end
+
+--========================================================
+-- LINE OF SIGHT
+--========================================================
+
+local function HasLineOfSight(
+    TargetCharacter,
+    TargetPart
+)
+
+    local Camera =
+        workspace.CurrentCamera
+
+    if not Camera
+        or not TargetCharacter
+        or not TargetPart
+    then
+        return false
+    end
+
+    local Origin =
+        Camera.CFrame.Position
+
+    local Direction =
+        TargetPart.Position -
+        Origin
+
+    if Direction.Magnitude <= 0.01 then
+        return true
+    end
+
+    local Params =
+        RaycastParams.new()
+
+    Params.FilterType =
+        Enum.RaycastFilterType.Exclude
+
+    Params.FilterDescendantsInstances = {
+        LocalPlayer.Character
+    }
+
+    Params.IgnoreWater = true
+
+    local Result =
+        workspace:Raycast(
+            Origin,
+            Direction,
+            Params
+        )
+
+    if not Result then
+        return true
+    end
+
+    return Result.Instance:IsDescendantOf(
+        TargetCharacter
+    )
+end
+
+--========================================================
+-- AURALOCK
+--========================================================
+
+local function GetAuraHighlight(Character)
+    if not Character then
+        return nil
+    end
+
+    return Character:FindFirstChild(AURA_NAME)
+end
+
+local function SetAuraColor(Player, VisibleEnemy)
+    local Character = Player.Character
+    local Highlight = GetAuraHighlight(Character)
+
+    if not Highlight then
+        return
+    end
+
+    if AuraLockEnabled and IsEnemy(Player) then
+        local Color = VisibleEnemy
+            and Color3.fromRGB(255, 55, 55)
+            or Color3.fromRGB(0, 255, 70)
+
+        Highlight.FillColor = Color
+        Highlight.OutlineColor = Color
+    else
+        Highlight.FillColor = Color3.fromRGB(0, 255, 70)
+        Highlight.OutlineColor = Color3.fromRGB(0, 255, 70)
+    end
+end
+
+local function UpdateAuraLock()
+    if not AuraEnabled and not AuraLockEnabled then
+        return
+    end
+
+    for _, Player in ipairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer then
+            if AuraEnabled or AuraLockEnabled then
+                AddAura(Player)
+
+                local Character = Player.Character
+                local TargetPart = Character and (
+                    Character:FindFirstChild("Head")
+                    or Character:FindFirstChild("HumanoidRootPart")
+                )
+
+                local VisibleEnemy = false
+                if AuraLockEnabled and IsEnemy(Player) and TargetPart then
+                    VisibleEnemy = HasLineOfSight(Character, TargetPart)
+                end
+
+                SetAuraColor(Player, VisibleEnemy)
+            end
+        end
+    end
+end
+
+local AuraLockConnection = RunService.RenderStepped:Connect(function()
+    if AuraLockEnabled then
+        UpdateAuraLock()
+    end
+end)
+
+local function SetupPlayer(Player)
+
+    if Player == LocalPlayer then
+        return
+    end
+
+    Player.CharacterAdded:Connect(function()
+
+        if AuraEnabled then
+
+            task.wait(0.2)
+
+            AddAura(Player)
+        end
+    end)
+end
+
+for _, Player in ipairs(
+    Players:GetPlayers()
+) do
+
+    SetupPlayer(Player)
+end
+
+Players.PlayerAdded:Connect(
+    SetupPlayer
+)
+
+--========================================================
+-- PARTES DO ALVO
+--========================================================
+
+local TargetPartNames = {
+    "Head",
+    "UpperTorso",
+    "LowerTorso",
+    "Torso",
+    "HumanoidRootPart",
+
+    "LeftUpperArm",
+    "LeftLowerArm",
+    "LeftHand",
+
+    "RightUpperArm",
+    "RightLowerArm",
+    "RightHand",
+
+    "LeftUpperLeg",
+    "LeftLowerLeg",
+    "LeftFoot",
+
+    "RightUpperLeg",
+    "RightLowerLeg",
+    "RightFoot"
+}
+
+local function GetVisibleTargetPart(Character)
+
+    if not Character
+        or not Character.Parent
+    then
+        return nil
+    end
+
+    for _, PartName in ipairs(
+        TargetPartNames
+    ) do
+
+        local Part =
+            Character:FindFirstChild(
+                PartName
+            )
+
+        if Part
+            and Part:IsA("BasePart")
+            and HasLineOfSight(
+                Character,
+                Part
+            )
+        then
+
+            return Part
+        end
+    end
+
+    return nil
+end
+
+--========================================================
+-- FOV
+--========================================================
+
+local function IsInsideFOV(Position)
+
+    local Camera =
+        workspace.CurrentCamera
+
+    if not Camera then
+        return false
+    end
+
+    local Viewport =
+        Camera.ViewportSize
+
+    local Center =
+        Vector2.new(
+            Viewport.X / 2,
+            Viewport.Y / 2
+        )
+
+    local ScreenPosition, Visible =
+        Camera:WorldToViewportPoint(
+            Position
+        )
+
+    if not Visible then
+        return false
+    end
+
+    local Distance =
+        (
+            Vector2.new(
+                ScreenPosition.X,
+                ScreenPosition.Y
+            ) -
+            Center
+        ).Magnitude
+
+    return Distance <= 130
+end
+
+--========================================================
+-- MIRA LOCK
+--========================================================
+
+local function GetClosestEnemyInFOV()
+
+    local Camera =
+        workspace.CurrentCamera
+
+    if not Camera then
+        return nil
+    end
+
+    local ClosestPlayer = nil
+    local ClosestDistance = math.huge
+
+    for _, Player in ipairs(
+        Players:GetPlayers()
+    ) do
+
+        if IsEnemy(Player) then
+
+            local Character =
+                Player.Character
+
+            if Character then
+
+                local Humanoid =
+                    Character:FindFirstChildOfClass(
+                        "Humanoid"
+                    )
+
+                if Humanoid
+                    and Humanoid.Health > 0
+                then
+
+                    local Part =
+                        GetVisibleTargetPart(
+                            Character
+                        )
+
+                    if Part
+                        and IsInsideFOV(
+                            Part.Position
+                        )
+                    then
+
+                        local ScreenPosition =
+                            Camera:WorldToViewportPoint(
+                                Part.Position
+                            )
+
+                        local Center =
+                            Camera.ViewportSize / 2
+
+                        local Distance =
+                            (
+                                Vector2.new(
+                                    ScreenPosition.X,
+                                    ScreenPosition.Y
+                                ) -
+                                Vector2.new(
+                                    Center.X,
+                                    Center.Y
+                                )
+                            ).Magnitude
+
+                        if Distance <
+                            ClosestDistance
+                        then
+
+                            ClosestDistance =
+                                Distance
+
+                            ClosestPlayer =
+                                Player
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return ClosestPlayer
+end
+
+local function IsValidMiraTarget(Player)
+
+    if not Player
+        or not Player.Parent
+        or not IsEnemy(Player)
+    then
+        return false
+    end
+
+    local Character =
+        Player.Character
+
+    if not Character then
+        return false
+    end
+
+    local Humanoid =
+        Character:FindFirstChildOfClass(
+            "Humanoid"
+        )
+
+    if not Humanoid
+        or Humanoid.Health <= 0
+    then
+        return false
+    end
+
+    local Part =
+        GetVisibleTargetPart(
+            Character
+        )
+
+    if not Part then
+        return false
+    end
+
+    return IsInsideFOV(
+        Part.Position
+    )
+end
+
+--========================================================
+-- MIRALOCK TOGGLE
+--========================================================
+
+MiraLockToggle.MouseButton1Click:Connect(function()
+
+    MiraLockEnabled =
+        not MiraLockEnabled
+
+    if MiraLockEnabled then
+
+        MiraLockToggle.Text =
+            "CircleAim   •   ACTIVATED"
+
+        SetButtonState(
+            MiraLockToggle,
+            true,
+            COLORS.AccentDark
+        )
+
+        FOVCircle.Visible = true
+
+        Status.Text =
+            "●  CircleAim active • hold the click"
+
+        Status.TextColor3 =
+            COLORS.Accent
+
+    else
+
+        MiraLockEnabled = false
+        MiraHolding = false
+        MiraTarget = nil
+
+        MiraLockToggle.Text =
+            "CircleAim   •   DISABLED"
+
+        SetButtonState(
+            MiraLockToggle,
+            false
+        )
+
+        FOVCircle.Visible = false
+
+        Status.Text =
+            "●  CircleAim disabled"
+
+        Status.TextColor3 =
+            COLORS.Muted
+    end
+end)
+
+--========================================================
+-- TARGET LOCK
+--========================================================
+
+local function GetClosestPlayer(
+    EnemyOnly
+)
+
+    local Camera =
+        workspace.CurrentCamera
+
+    if not Camera then
+        return nil
+    end
+
+    local ClosestPlayer = nil
+    local ClosestDistance = math.huge
+
+    for _, Player in ipairs(
+        Players:GetPlayers()
+    ) do
+
+        if Player ~= LocalPlayer then
+
+            if not EnemyOnly
+                or IsEnemy(Player)
+            then
+
+                local Character =
+                    Player.Character
+
+                if Character then
+
+                    local Humanoid =
+                        Character:FindFirstChildOfClass(
+                            "Humanoid"
+                        )
+
+                    if Humanoid
+                        and Humanoid.Health > 0
+                    then
+
+                        local Part =
+                            GetVisibleTargetPart(
+                                Character
+                            )
+
+                        if Part then
+
+                            local Distance =
+                                (
+                                    Camera.CFrame.Position -
+                                    Part.Position
+                                ).Magnitude
+
+                            if Distance <
+                                ClosestDistance
+                            then
+
+                                ClosestDistance =
+                                    Distance
+
+                                ClosestPlayer =
+                                    Player
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+
+    return ClosestPlayer
+end
+
+TargetToggle.MouseButton1Click:Connect(function()
+
+    TargetLockEnabled =
+        not TargetLockEnabled
+
+    if TargetLockEnabled then
+
+        EnemyTargetLockEnabled = false
+
+        TargetToggle.Text =
+            "AimBot   •   ACTIVATED"
+
+        EnemyTargetToggle.Text =
+            "AimBotEnemies   •   DISABLED"
+
+        SetButtonState(
+            TargetToggle,
+            true,
+            COLORS.AccentDark
+        )
+
+        SetButtonState(
+            EnemyTargetToggle,
+            false
+        )
+
+    else
+
+        TargetToggle.Text =
+            "AimBot   •   DISABLED"
+
+        SetButtonState(
+            TargetToggle,
+            false
+        )
+    end
+end)
+
+EnemyTargetToggle.MouseButton1Click:Connect(function()
+
+    EnemyTargetLockEnabled =
+        not EnemyTargetLockEnabled
+
+    if EnemyTargetLockEnabled then
+
+        TargetLockEnabled = false
+
+        TargetToggle.Text =
+            "AimBot   •   DISABLED"
+
+        EnemyTargetToggle.Text =
+            "AimBotEnemies   •   ACTIVATED"
+
+        SetButtonState(
+            TargetToggle,
+            false
+        )
+
+        SetButtonState(
+            EnemyTargetToggle,
+            true,
+            COLORS.Red
+        )
+
+    else
+
+        EnemyTargetToggle.Text =
+            "AimBotEnemies   •   DISABLED"
+
+        SetButtonState(
+            EnemyTargetToggle,
+            false
+        )
+    end
+end)
+
+--========================================================
+-- LOOP DAS MIRAS
+--========================================================
+
+RunService:BindToRenderStep(
+    "VoidByteTargetLock",
+    Enum.RenderPriority.Camera.Value + 1,
+    function()
+
+        local Camera =
+            workspace.CurrentCamera
+
+        if not Camera then
+            return
+        end
+
+        if MiraLockEnabled
+            and MiraHolding
+        then
+
+            if not IsValidMiraTarget(
+                MiraTarget
+            ) then
+
+                MiraTarget =
+                    GetClosestEnemyInFOV()
+            end
+
+            if MiraTarget then
+
+                local Character =
+                    MiraTarget.Character
+
+                local Part =
+                    GetVisibleTargetPart(
+                        Character
+                    )
+
+                if Part then
+
+                    Camera.CFrame =
+                        CFrame.lookAt(
+                            Camera.CFrame.Position,
+                            Part.Position
+                        )
+                end
+            end
+
+            return
+        end
+
+        if not TargetLockEnabled
+            and not EnemyTargetLockEnabled
+        then
+            return
+        end
+
+        local Target =
+            GetClosestPlayer(
+                EnemyTargetLockEnabled
+            )
+
+        if not Target then
+            return
+        end
+
+        local Character =
+            Target.Character
+
+        local Part =
+            GetVisibleTargetPart(
+                Character
+            )
+
+        if not Part then
+            return
+        end
+
+        Camera.CFrame =
+            CFrame.lookAt(
+                Camera.CFrame.Position,
+                Part.Position
+            )
+    end
+)
+
+--========================================================
+-- MOUSE SEGURADO
+--========================================================
+
+UserInputService.InputBegan:Connect(function(
+    Input,
+    GameProcessed
+)
+
+    if GameProcessed then
+        return
+    end
+
+    if Input.UserInputType ==
+        Enum.UserInputType.MouseButton1
+    then
+
+        if MiraLockEnabled then
+
+            MiraHolding = true
+            MiraTarget = nil
+
+            MiraTarget =
+                GetClosestEnemyInFOV()
+        end
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(Input)
+
+    if Input.UserInputType ==
+        Enum.UserInputType.MouseButton1
+    then
+
+        MiraHolding = false
+        MiraTarget = nil
+    end
+end)
+
+--========================================================
+-- AURA TOGGLE
+--========================================================
+
+AuraToggle.MouseButton1Click:Connect(function()
+
+    AuraEnabled =
+        not AuraEnabled
+
+    if AuraEnabled then
+
+        AuraToggle.Text =
+            "WallHack   •   ACTIVATED"
+
+        SetButtonState(
+            AuraToggle,
+            true,
+            COLORS.Green
+        )
+
+        Status.Text =
+            "●  WallHack activated"
+
+        Status.TextColor3 =
+            COLORS.Green
+
+    else
+
+        AuraToggle.Text =
+            "WallHack   •   DISABLED"
+
+        SetButtonState(
+            AuraToggle,
+            false
+        )
+
+        Status.Text =
+            "●  WallHack disabled"
+
+        Status.TextColor3 =
+            COLORS.Muted
+    end
+
+    UpdateAllAuras()
+end)
+
+AuraLockToggle.MouseButton1Click:Connect(function()
+
+    AuraLockEnabled = not AuraLockEnabled
+
+    if AuraLockEnabled then
+        AuraLockToggle.Text = "WallHackEnemies   •   ACTIVATED"
+        SetButtonState(AuraLockToggle, true, COLORS.Green)
+
+        Status.Text = "●  WallHackEnemies active • visible enemies turn red"
+        Status.TextColor3 = COLORS.Green
+    else
+        AuraLockToggle.Text = "WallHackEnemies   •   DISABLED"
+        SetButtonState(AuraLockToggle, false)
+
+        Status.Text = "●  WallHackEnemies disabled"
+        Status.TextColor3 = COLORS.Muted
+    end
+
+    UpdateAuraLock()
+    UpdateAllAuras()
+end)
+
+--========================================================
+-- RESPAWN
+--========================================================
+
+RespawnToggle.MouseButton1Click:Connect(function()
+
+    RespawnRetorneEnabled =
+        not RespawnRetorneEnabled
+
+    if RespawnRetorneEnabled then
+
+        RespawnToggle.Text =
+            "RESPAWN RETURN   •   ENABLED"
+
+        SetButtonState(
+            RespawnToggle,
+            true,
+            COLORS.AccentDark
+        )
+
+        local Character =
+            LocalPlayer.Character
+
+        if Character then
+
+            local Root =
+                Character:FindFirstChild(
+                    "HumanoidRootPart"
+                )
+
+            if Root then
+
+                SavedRespawnCFrame =
+                    Root.CFrame
+            end
+        end
+
+    else
+
+        RespawnToggle.Text =
+            "RESPAWN RETURN   •   DISABLED"
+
+        SetButtonState(
+            RespawnToggle,
+            false
+        )
+
+        SavedRespawnCFrame = nil
+    end
+end)
+
+LocalPlayer.CharacterRemoving:Connect(function(
+    Character
+)
+
+    if RespawnRetorneEnabled then
+
+        local Root =
+            Character:FindFirstChild(
+                "HumanoidRootPart"
+            )
+
+        if Root then
+
+            SavedRespawnCFrame =
+                Root.CFrame
+        end
+    end
+end)
+
+LocalPlayer.CharacterAdded:Connect(function(
+    Character
+)
+
+    if not RespawnRetorneEnabled
+        or not SavedRespawnCFrame
+    then
+        return
+    end
+
+    local Root =
+        Character:WaitForChild(
+            "HumanoidRootPart",
+            10
+        )
+
+    if Root then
+
+        task.wait(0.15)
+
+        Root.CFrame =
+            SavedRespawnCFrame
+
+        SavedRespawnCFrame = nil
+    end
+
+    if NamesEnabled then
+        task.wait(0.2)
+
+        for _, Player in ipairs(
+            Players:GetPlayers()
+        ) do
+
+            if Player ~= LocalPlayer then
+                CreateNameTag(Player)
+            end
+        end
+    end
+end)
+
+--========================================================
+-- VEHICLE
+--========================================================
+
+local function GetVehicleSeat()
+
+    local Character =
+        LocalPlayer.Character
+
+    if not Character then
+        return nil
+    end
+
+    local Humanoid =
+        Character:FindFirstChildOfClass(
+            "Humanoid"
+        )
+
+    if not Humanoid then
+        return nil
+    end
+
+    local Seat =
+        Humanoid.SeatPart
+
+    if Seat
+        and Seat:IsA("VehicleSeat")
+    then
+        return Seat
+    end
+
+    return nil
+end
+
+local function GetVehicleRoot(Seat)
+
+    if not Seat then
+        return nil
+    end
+
+    local Model =
+        Seat:FindFirstAncestorOfClass(
+            "Model"
+        )
+
+    if not Model then
+
+        return Seat.AssemblyRootPart
+            or Seat
+    end
+
+    if Model.PrimaryPart then
+        return Model.PrimaryPart
+    end
+
+    return Seat.AssemblyRootPart
+        or Seat
+end
+
+local function StopVehicleFly()
+
+    if VehicleVelocity then
+
+        VehicleVelocity.VectorVelocity =
+            Vector3.zero
+
+        VehicleVelocity:Destroy()
+
+        VehicleVelocity = nil
+    end
+
+    if VehicleOrientation then
+
+        VehicleOrientation:Destroy()
+
+        VehicleOrientation = nil
+    end
+
+    if VehicleAttachment then
+
+        VehicleAttachment:Destroy()
+
+        VehicleAttachment = nil
+    end
+
+    if VehicleOrientationAttachment then
+
+        VehicleOrientationAttachment:Destroy()
+
+        VehicleOrientationAttachment = nil
+    end
+
+    FlyingVehicle = nil
+    FlyingVehicleRoot = nil
+end
+
+local function StartVehicleFly(Seat)
+
+    local Root =
+        GetVehicleRoot(Seat)
+
+    if not Root then
+        return false
+    end
+
+    StopVehicleFly()
+
+    FlyingVehicle = Seat
+    FlyingVehicleRoot = Root
+
+    VehicleAttachment =
+        Instance.new("Attachment")
+
+    VehicleAttachment.Parent =
+        Root
+
+    VehicleVelocity =
+        Instance.new("LinearVelocity")
+
+    VehicleVelocity.Attachment0 =
+        VehicleAttachment
+
+    VehicleVelocity.RelativeTo =
+        Enum.ActuatorRelativeTo.World
+
+    VehicleVelocity.MaxForce =
+        math.huge
+
+    VehicleVelocity.VectorVelocity =
+        Vector3.zero
+
+    VehicleVelocity.Parent =
+        Root
+
+    VehicleOrientationAttachment =
+        Instance.new("Attachment")
+
+    VehicleOrientationAttachment.Parent =
+        Root
+
+    VehicleOrientation =
+        Instance.new("AlignOrientation")
+
+    VehicleOrientation.Attachment0 =
+        VehicleOrientationAttachment
+
+    VehicleOrientation.Mode =
+        Enum.OrientationAlignmentMode.OneAttachment
+
+    VehicleOrientation.RigidityEnabled = true
+    VehicleOrientation.MaxTorque = math.huge
+    VehicleOrientation.Responsiveness = 200
+    VehicleOrientation.Parent = Root
+
+    return true
+end
+
+--========================================================
+-- STOP FLY
+--========================================================
+
+local function StopFlying()
+
+    Flying = false
+
+    if FlyConnection then
+
+        FlyConnection:Disconnect()
+
+        FlyConnection = nil
+    end
+
+    if FlyVelocity then
+
+        FlyVelocity.VectorVelocity =
+            Vector3.zero
+
+        FlyVelocity:Destroy()
+
+        FlyVelocity = nil
+    end
+
+    if FlyOrientation then
+
+        FlyOrientation:Destroy()
+
+        FlyOrientation = nil
+    end
+
+    if FlyAttachment then
+
+        FlyAttachment:Destroy()
+
+        FlyAttachment = nil
+    end
+
+    if FlyOrientationAttachment then
+
+        FlyOrientationAttachment:Destroy()
+
+        FlyOrientationAttachment = nil
+    end
+
+    StopVehicleFly()
+
+    local Character =
+        LocalPlayer.Character
+
+    if Character then
+
+        local Humanoid =
+            Character:FindFirstChildOfClass(
+                "Humanoid"
+            )
+
+        if Humanoid then
+
+            Humanoid.PlatformStand = false
+            Humanoid.AutoRotate = true
+        end
+    end
+
+    for Key in pairs(FlyKeys) do
+        FlyKeys[Key] = false
+    end
+end
+
+--========================================================
+-- START FLY
+--========================================================
+
+local function StartFlying()
+
+    if not FlyEnabled
+        or Flying
+    then
+        return
+    end
+
+    local Character =
+        LocalPlayer.Character
+
+    if not Character then
+        return
+    end
+
+    local Humanoid =
+        Character:FindFirstChildOfClass(
+            "Humanoid"
+        )
+
+    if not Humanoid
+        or Humanoid.Health <= 0
+    then
+        return
+    end
+
+    local Seat =
+        GetVehicleSeat()
+
+    if Seat then
+
+        if not StartVehicleFly(
+            Seat
+        ) then
+            return
+        end
+
+        Flying = true
+
+        Humanoid.PlatformStand = false
+        Humanoid.AutoRotate = false
+
+    else
+
+        local Root =
+            Character:FindFirstChild(
+                "HumanoidRootPart"
+            )
+
+        if not Root then
+            return
+        end
+
+        Flying = true
+
+        Humanoid.PlatformStand = true
+        Humanoid.AutoRotate = false
+
+        FlyAttachment =
+            Instance.new("Attachment")
+
+        FlyAttachment.Parent =
+            Root
+
+        FlyVelocity =
+            Instance.new("LinearVelocity")
+
+        FlyVelocity.Attachment0 =
+            FlyAttachment
+
+        FlyVelocity.RelativeTo =
+            Enum.ActuatorRelativeTo.World
+
+        FlyVelocity.MaxForce =
+            math.huge
+
+        FlyVelocity.Parent =
+            Root
+
+        FlyOrientationAttachment =
+            Instance.new("Attachment")
+
+        FlyOrientationAttachment.Parent =
+            Root
+
+        FlyOrientation =
+            Instance.new("AlignOrientation")
+
+        FlyOrientation.Attachment0 =
+            FlyOrientationAttachment
+
+        FlyOrientation.Mode =
+            Enum.OrientationAlignmentMode.OneAttachment
+
+        FlyOrientation.RigidityEnabled = true
+        FlyOrientation.MaxTorque = math.huge
+        FlyOrientation.Responsiveness = 200
+        FlyOrientation.Parent = Root
+    end
+
+    Status.Text =
+        "●  Fly ativo • E para parar"
+
+    Status.TextColor3 =
+        Color3.fromRGB(
+            105,
+            230,
+            135
+        )
+
+    FlyConnection =
+        RunService.RenderStepped:Connect(
+            function()
+
+                if not Flying then
+                    return
+                end
+
+                local CharacterNow =
+                    LocalPlayer.Character
+
+                if not CharacterNow then
+
+                    StopFlying()
+
+                    return
+                end
+
+                local HumanoidNow =
+                    CharacterNow:FindFirstChildOfClass(
+                        "Humanoid"
+                    )
+
+                if not HumanoidNow
+                    or HumanoidNow.Health <= 0
+                then
+
+                    StopFlying()
+
+                    return
+                end
+
+                local Camera =
+                    workspace.CurrentCamera
+
+                if not Camera then
+                    return
+                end
+
+                local Look =
+                    Camera.CFrame.LookVector
+
+                local Right =
+                    Camera.CFrame.RightVector
+
+                local Direction =
+                    Vector3.zero
+
+                if FlyKeys.W then
+                    Direction += Look
+                end
+
+                if FlyKeys.S then
+                    Direction -= Look
+                end
+
+                if FlyKeys.D then
+                    Direction += Right
+                end
+
+                if FlyKeys.A then
+                    Direction -= Right
+                end
+
+                if FlyKeys.Up then
+                    Direction += Vector3.yAxis
+                end
+
+                if FlyKeys.Down then
+                    Direction -= Vector3.yAxis
+                end
+
+                if Direction.Magnitude > 0 then
+
+                    Direction =
+                        Direction.Unit *
+                        FlySpeed
+                end
+
+                local CurrentSeat =
+                    GetVehicleSeat()
+
+                if CurrentSeat then
+
+                    HumanoidNow.PlatformStand =
+                        false
+
+                    HumanoidNow.AutoRotate =
+                        false
+
+                    local VehicleRoot =
+                        GetVehicleRoot(
+                            CurrentSeat
+                        )
+
+                    if VehicleRoot then
+
+                        if FlyingVehicleRoot
+                            ~= VehicleRoot
+                        then
+
+                            StartVehicleFly(
+                                CurrentSeat
+                            )
+                        end
+
+                        if VehicleVelocity then
+
+                            VehicleVelocity.VectorVelocity =
+                                Direction
+                        end
+
+                        local Flat =
+                            Vector3.new(
+                                Look.X,
+                                0,
+                                Look.Z
+                            )
+
+                        if Flat.Magnitude >
+                            0.001
+                            and VehicleOrientation
+                        then
+
+                            VehicleOrientation.CFrame =
+                                CFrame.lookAt(
+                                    Vector3.zero,
+                                    Flat.Unit
+                                )
+                        end
+                    end
+
+                else
+
+                    if FlyingVehicle then
+                        StopVehicleFly()
+                    end
+
+                    HumanoidNow.PlatformStand =
+                        true
+
+                    HumanoidNow.AutoRotate =
+                        false
+
+                    local Root =
+                        CharacterNow:FindFirstChild(
+                            "HumanoidRootPart"
+                        )
+
+                    if not Root then
+
+                        StopFlying()
+
+                        return
+                    end
+
+                    if FlyVelocity then
+
+                        FlyVelocity.VectorVelocity =
+                            Direction
+                    end
+
+                    local Flat =
+                        Vector3.new(
+                            Look.X,
+                            0,
+                            Look.Z
+                        )
+
+                    if Flat.Magnitude >
+                        0.001
+                        and FlyOrientation
+                    then
+
+                        FlyOrientation.CFrame =
+                            CFrame.lookAt(
+                                Vector3.zero,
+                                Flat.Unit
+                            )
+                    end
+                end
+            end
+        )
+end
+
+--========================================================
+-- REATIVAR FLY/SPIN APÓS MORTE
+--========================================================
+
+LocalPlayer.CharacterAdded:Connect(function(Character)
+    Character:WaitForChild("Humanoid", 10)
+    Character:WaitForChild("HumanoidRootPart", 10)
+    task.wait(0.15)
+
+    if FlyEnabled then
+        StartFlying()
+    end
+
+    if SpinEnabled then
+        StartSpin()
+    end
+end)
+
+--========================================================
+-- FLY INPUT
+--========================================================
+
+UserInputService.InputBegan:Connect(function(
+    Input,
+    Processed
+)
+
+    if Processed then
+        return
+    end
+
+    if Input.KeyCode ==
+        Enum.KeyCode.E
+    then
+
+        if not FlyEnabled then
+            return
+        end
+
+        if Flying then
+            StopFlying()
+        else
+            StartFlying()
+        end
+
+        return
+    end
+
+    if not FlyEnabled
+        or not Flying
+    then
+        return
+    end
+
+    if Input.KeyCode ==
+        Enum.KeyCode.W
+    then
+
+        FlyKeys.W = true
+
+    elseif Input.KeyCode ==
+        Enum.KeyCode.A
+    then
+
+        FlyKeys.A = true
+
+    elseif Input.KeyCode ==
+        Enum.KeyCode.S
+    then
+
+        FlyKeys.S = true
+
+    elseif Input.KeyCode ==
+        Enum.KeyCode.D
+    then
+
+        FlyKeys.D = true
+
+    elseif Input.KeyCode ==
+        Enum.KeyCode.LeftShift
+    then
+
+        FlyKeys.Up = true
+
+    elseif Input.KeyCode ==
+        Enum.KeyCode.LeftControl
+    then
+
+        FlyKeys.Down = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(Input)
+
+    if Input.KeyCode ==
+        Enum.KeyCode.W
+    then
+
+        FlyKeys.W = false
+
+    elseif Input.KeyCode ==
+        Enum.KeyCode.A
+    then
+
+        FlyKeys.A = false
+
+    elseif Input.KeyCode ==
+        Enum.KeyCode.S
+    then
+
+        FlyKeys.S = false
+
+    elseif Input.KeyCode ==
+        Enum.KeyCode.D
+    then
+
+        FlyKeys.D = false
+
+    elseif Input.KeyCode ==
+        Enum.KeyCode.LeftShift
+    then
+
+        FlyKeys.Up = false
+
+    elseif Input.KeyCode ==
+        Enum.KeyCode.LeftControl
+    then
+
+        FlyKeys.Down = false
+    end
+end)
+
+--========================================================
+-- FLY TOGGLE
+--========================================================
+
+
+-- Desativa automaticamente o Fly ao morrer/respawn
+LocalPlayer.CharacterAdded:Connect(function(Character)
+    StopFlying()
+    FlyEnabled = false
+
+    if FlyToggle then
+        FlyToggle.Text = "FLY   •   DISABLED"
+        SetButtonState(FlyToggle, false)
+    end
+end)
+
+FlyToggle.MouseButton1Click:Connect(function()
+
+    FlyEnabled =
+        not FlyEnabled
+
+    if FlyEnabled then
+
+        FlyToggle.Text =
+            "FLY   •   ACTIVATED"
+
+        SetButtonState(
+            FlyToggle,
+            true,
+            COLORS.AccentDark
+        )
+
+        Status.Text =
+            "● Fly activated • press E"
+
+        Status.TextColor3 =
+            COLORS.Accent
+
+    else
+
+        StopFlying()
+
+        FlyToggle.Text =
+            "FLY   •   DISABLED"
+
+        SetButtonState(
+            FlyToggle,
+            false
+        )
+
+        Status.Text =
+            "●  Fly disabled"
+
+        Status.TextColor3 =
+            COLORS.Muted
+    end
+end)
+
+
+
+--========================================================
+-- TROCAR ABA
+--========================================================
+
+local function SelectTab(Tab)
+
+    CurrentTab = Tab
+
+    local IsControle =
+        Tab == "Controle"
+
+    local IsFerramentas =
+        Tab == "Ferramentas"
+
+    local IsConsole =
+        Tab == "Console"
+
+    ControlePage.Visible =
+        IsControle
+
+    ToolsPage.Visible =
+        IsFerramentas
+
+    ConsolePage.Visible =
+        IsConsole
+
+    if IsControle then
+
+        ControleTab.BackgroundColor3 =
+            COLORS.AccentDark
+
+        ControleText.TextColor3 =
+            COLORS.Text
+
+        ControleIcon.TextColor3 =
+            COLORS.Text
+
+    else
+
+        ControleTab.BackgroundColor3 =
+            COLORS.Button
+
+        ControleText.TextColor3 =
+            COLORS.Muted
+
+        ControleIcon.TextColor3 =
+            COLORS.Muted
+    end
+
+    if IsFerramentas then
+
+        FerramentasTab.BackgroundColor3 =
+            COLORS.AccentDark
+
+        FerramentasText.TextColor3 =
+            COLORS.Text
+
+        FerramentasIcon.TextColor3 =
+            COLORS.Text
+
+    else
+
+        FerramentasTab.BackgroundColor3 =
+            COLORS.Button
+
+        FerramentasText.TextColor3 =
+            COLORS.Muted
+
+        FerramentasIcon.TextColor3 =
+            COLORS.Muted
+    end
+
+    if IsConsole then
+
+        ConsoleTab.BackgroundColor3 =
+            COLORS.AccentDark
+
+        ConsoleText.TextColor3 =
+            COLORS.Text
+
+        ConsoleIcon.TextColor3 =
+            COLORS.Text
+
+        Status.Text =
+            "●  Console Lua"
+
+        Status.TextColor3 =
+            COLORS.Accent
+
+    else
+
+        ConsoleTab.BackgroundColor3 =
+            COLORS.Button
+
+        ConsoleText.TextColor3 =
+            COLORS.Muted
+
+        ConsoleIcon.TextColor3 =
+            COLORS.Muted
+    end
+end
+
+ControleTab.MouseButton1Click:Connect(function()
+    SelectTab("Controle")
+end)
+
+FerramentasTab.MouseButton1Click:Connect(function()
+    SelectTab("Ferramentas")
+end)
+
+ConsoleTab.MouseButton1Click:Connect(function()
+    SelectTab("Console")
+end)
+
+--========================================================
+-- ARRASTAR JANELA
+--========================================================
+
+local Dragging = false
+local DragStart = nil
+local StartPosition = nil
+local DragInput = nil
+
+TopBar.InputBegan:Connect(function(Input)
+
+    if Input.UserInputType ==
+        Enum.UserInputType.MouseButton1
+        or
+        Input.UserInputType ==
+        Enum.UserInputType.Touch
+    then
+
+        Dragging = true
+        DragStart = Input.Position
+        StartPosition = Main.Position
+        DragInput = Input
+    end
+end)
+
+TopBar.InputEnded:Connect(function(Input)
+
+    if Input == DragInput then
+
+        Dragging = false
+        DragInput = nil
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(Input)
+
+    if not Dragging then
+        return
+    end
+
+    if Input.UserInputType ==
+        Enum.UserInputType.MouseMovement
+        or
+        Input.UserInputType ==
+        Enum.UserInputType.Touch
+    then
+
+        local Delta =
+            Input.Position -
+            DragStart
+
+        Main.Position =
+            UDim2.new(
+                StartPosition.X.Scale,
+                StartPosition.X.Offset +
+                    Delta.X,
+
+                StartPosition.Y.Scale,
+                StartPosition.Y.Offset +
+                    Delta.Y
+            )
+    end
+end)
+
+--========================================================
+-- MINIMIZAR
+--========================================================
+
+local function SetMinimized(State)
+
+    if State == Minimized then
+        return
+    end
+
+    Minimized = State
+
+    if Minimized then
+
+        Sidebar.Visible = false
+        Content.Visible = false
+
+        TweenService:Create(
+            Main,
+            TweenInfo.new(
+                0.2,
+                Enum.EasingStyle.Quart,
+                Enum.EasingDirection.Out
+            ),
+            {
+                Size = MINIMIZED_SIZE
+            }
+        ):Play()
+
+        Minimize.Text = "□"
+
+    else
+
+        TweenService:Create(
+            Main,
+            TweenInfo.new(
+                0.2,
+                Enum.EasingStyle.Quart,
+                Enum.EasingDirection.Out
+            ),
+            {
+                Size = WINDOW_SIZE
+            }
+        ):Play()
+
+        task.delay(0.2, function()
+
+            if not Minimized then
+
+                Sidebar.Visible = true
+                Content.Visible = true
+            end
+        end)
+
+        Minimize.Text = "−"
+    end
+end
+
+Minimize.MouseButton1Click:Connect(function()
+
+    SetMinimized(
+        not Minimized
+    )
+end)
+
+--========================================================
+-- FECHAR
+--========================================================
+
+Close.MouseButton1Click:Connect(function()
+
+    TargetLockEnabled = false
+    EnemyTargetLockEnabled = false
+
+    MiraLockEnabled = false
+    MiraHolding = false
+    MiraTarget = nil
+
+    AuraEnabled = false
+    NamesEnabled = false
+    RespawnRetorneEnabled = false
+
+    FlyEnabled = false
+    SpinEnabled = false
+
+    StopTPLoop()
+    StopFlying()
+    StopSpin()
+
+    -- REMOVER TODOS OS NOMES
+    for Player in pairs(NameTags) do
+        RemoveNameTag(Player)
+    end
+
+    if FOVCircle then
+        FOVCircle:Destroy()
+    end
+
+    pcall(function()
+
+        RunService:UnbindFromRenderStep(
+            "VoidByteTargetLock"
+        )
+    end)
+
+    for _, Player in ipairs(
+        Players:GetPlayers()
+    ) do
+
+        if Player.Character then
+
+            RemoveAura(
+                Player.Character
+            )
+        end
+    end
+
+    ScreenGui:Destroy()
+end)
