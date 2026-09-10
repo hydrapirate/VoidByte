@@ -1,4 +1,4 @@
-# 📼 VoidByte Menu 4.0 ALPHA
+# 📼 VoidByte Menu 4.0 ALPHA (OPEN SOURCE)
 
 # 💻 Script
 
