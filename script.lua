@@ -322,7 +322,7 @@ local Status = Instance.new("TextLabel")
 Status.Size = UDim2.new(1, -28, 0, 28)
 Status.Position = UDim2.fromOffset(14, 10)
 Status.BackgroundTransparency = 1
-Status.Text = "●  VoidByte Menu 3.0 Alpha"
+Status.Text = "●  VoidByte Menu 4.0 Alpha"
 Status.TextColor3 = Color3.fromRGB(105, 210, 135)
 Status.TextSize = 11
 Status.Font = Enum.Font.GothamMedium
@@ -2132,6 +2132,79 @@ AdminButton.MouseButton1Click:Connect(function()
     end
 end)
 
+
+-- Hydra Logger
+
+CreateSectionTitle(
+    "TOOLS",
+    ToolsPage
+)
+
+local AdminButton =
+    CreateButton(
+        "Hydra Logger",
+        ToolsPage
+    )
+
+AdminButton.MouseButton1Click:Connect(function()
+
+    Status.Text =
+        "●  Running Hydra Logger..."
+
+    Status.TextColor3 =
+        COLORS.Accent
+
+    local Success, ErrorMessage =
+        pcall(function()
+
+            local Source =
+                game:HttpGet(
+                    "https://raw.githubusercontent.com/hydrapirate/VoidByte/refs/heads/main/VoidByte%20Tools/HydraLogger.lua"
+                )
+
+            local Execute =
+                loadstring(Source)
+
+            if not Execute then
+                error(
+                    "loadstring is not available."
+                )
+            end
+
+            Execute()
+        end)
+
+    if Success then
+
+        AdminButton.Text =
+            "Hydra Logger   •   EXECUTED"
+
+        SetButtonState(
+            AdminButton,
+            true,
+            COLORS.AccentDark
+        )
+
+        Status.Text =
+            "●  Hydra Logger executed"
+
+        Status.TextColor3 =
+            Color3.fromRGB(105, 210, 135)
+
+    else
+
+        Status.Text =
+            "●  Error during execution Hydra Logger"
+
+        Status.TextColor3 =
+            Color3.fromRGB(255, 130, 135)
+
+        warn(
+            "VoidByte Admin:",
+            ErrorMessage
+        )
+    end
+end)
 
 --========================================================
 -- CONSOLE LUA
